@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include"rt_script/RT_Script.h"
+#include"RT_Script.h"
 int main() 
 {
     RT_ScriptSystem *p = new RT_ScriptSystem();

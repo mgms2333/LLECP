@@ -1,4 +1,4 @@
-#include"MotionPlanning/MotionPlanning.h"
+#include"MotionPlanning.h"
 int main()
 {
     std::vector<ST_MotionTransitionFrame>v_TransitionMotionFrame;
@@ -41,7 +41,6 @@ int main()
 
     file.close();
     std::cout << "保存成功: " << filename << std::endl;
-
 
     printf("hello world!");
 }
