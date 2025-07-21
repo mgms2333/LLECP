@@ -2,6 +2,7 @@
 int main()
 {
     std::vector<ST_MotionTransitionFrame>v_TransitionMotionFrame;
+    
     //添加起始点
     // v_TransitionMotionFrame.push_back(ST_MotionTransitionFrame(0,0));
     // //添加过度点
