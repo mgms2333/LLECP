@@ -1,0 +1,5 @@
+#define sCmd_IF             "IF"
+#define sCmd_THEN           "THEN"
+#define sCmd_ELSIF          "ELSIF"
+#define sCmd_ELSE           "ELSE "
+#define sCmd_END_IF         "END_IF"
