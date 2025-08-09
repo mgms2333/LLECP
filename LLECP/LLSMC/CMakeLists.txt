@@ -6,7 +6,7 @@ set(SMC_SOURCES
 add_subdirectory(MotionAlgorithm)
 # add_subdirectory(MotionFunctionBlock)  # 如启用，再解注释
 
-add_library(LLSMC STATIC ${SMC_SOURCES})
+add_library(LLSMC SHARED ${SMC_SOURCES})
 
 target_include_directories(LLSMC PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

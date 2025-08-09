@@ -2,7 +2,9 @@
 
 ScriptUint_Line::ScriptUint_Line()
 {
+    nCmdNum_Max = 999;
     nCmdNum_Now = 0;
+    nCmdRunIndex = 0;
 }
 
 ScriptUint_Line::~ScriptUint_Line()

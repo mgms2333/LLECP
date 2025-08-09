@@ -1,6 +1,28 @@
 #include"RT_Script.h"
 RT_ScriptSystem::RT_ScriptSystem(/* args */)
 {
+    v_sLogicalStatement.push_back("IF");
+    v_sLogicalStatement.push_back("ELSE");
+    v_sLogicalStatement.push_back("THEN");
+    v_sLogicalStatement.push_back("FOR");
+    v_sLogicalStatement.push_back("DO");
+    v_sLogicalStatement.push_back("BY");
+    v_sLogicalStatement.push_back("END_IF");
+    v_sLogicalStatement.push_back("END_FOR");
+    v_sLogicalStatement.push_back("WHILE");
+    v_sLogicalStatement.push_back("END_WHILE");
+    v_sLogicalStatement.push_back("WAIT");
+    v_sLogicalStatement.push_back("SLEEP");
+    v_sOperator.push_back("+");
+    v_sOperator.push_back("-");
+    v_sOperator.push_back("*");
+    v_sOperator.push_back("/");
+    v_sOperator.push_back(">");
+    v_sOperator.push_back("<");
+    v_sOperator.push_back("=");
+    v_sOperator.push_back("<>");
+    v_sOperator.push_back("<=");
+    v_sOperator.push_back(">=");
 }
 
 RT_ScriptSystem::~RT_ScriptSystem()
@@ -15,7 +37,7 @@ int RT_ScriptSystem::InitRT_ScriptSystem()
     nPushBufferIndex = 0;
     nPushLineIndex = 0;
     //清空buffer
-    for (int i = 0;i < SCRIPTNUMBER_MAX;i++)
+    for (int i = 0;i < SCRIPTNUMBUFF_MAX;i++)
     {
         ScripList[i].InitScript();
     }
@@ -52,7 +74,7 @@ int RT_ScriptSystem::PushBufferBreak()
 
 int RT_ScriptSystem::StartRT_Script()
 {
-    for (int i = 0;i < SCRIPTNUMBER_MAX;i++)
+    for (int i = 0;i < SCRIPTNUMBUFF_MAX;i++)
     {
         ScripList[i].ResetScript();
     }

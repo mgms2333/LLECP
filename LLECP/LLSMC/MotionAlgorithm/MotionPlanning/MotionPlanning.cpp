@@ -83,7 +83,7 @@ int MotionPlanning::TrajectoryCalculation(double dCycle,ST_KinematicLimit stKine
             pos_1.push_back(i);
         }
     }
-    for(int32_t i = 1;i<pos_1.size();i++)
+    for(int32_t i = 1;i<pos_1.size()-1;i++)
     {
         for(int32_t j = pos_1[i]+1;j<=pos_1[i+1];j++)
         {

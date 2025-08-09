@@ -1,12 +1,12 @@
-# 添加子模块
-add_subdirectory(MotionPlanning)
+# 自动收集 MotionPlanning 及其下所有 cpp 文件
+file(GLOB_RECURSE MA_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+)
 
-# 包装成接口库（不编译代码，仅传递链接和头文件）
-add_library(MotionAlgorithm INTERFACE)
+add_library(MotionAlgorithm SHARED ${MA_SOURCES})
 
-target_include_directories(MotionAlgorithm INTERFACE
+target_include_directories(MotionAlgorithm PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/MotionPlanning
 )
 
-target_link_libraries(MotionAlgorithm INTERFACE MotionPlanning)

@@ -5,3 +5,9 @@ EX_RES RT_ScriptSystem::ActuatorUint_IF(ScriptUint_Cmd* pUint_Cmd)
 
     return EX_RES::EX_RES_Done;
 }
+
+EX_RES RT_ScriptSystem::ActuatorUint_ELSE(ScriptUint_Cmd* pUint_Cmd)
+{
+
+    return EX_RES::EX_RES_Done;
+}

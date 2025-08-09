@@ -1,4 +1,4 @@
-#include"MotionPlanning.h"
+#include"../LLSMC/LL_SMC.h"
 int main()
 {
     std::vector<ST_MotionTransitionFrame>v_TransitionMotionFrame;

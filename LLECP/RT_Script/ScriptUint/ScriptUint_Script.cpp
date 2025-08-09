@@ -2,7 +2,9 @@
 
 ScriptUint_Script::ScriptUint_Script()
 {
-
+    //脚本默认带第一行读取到换行后新加一行
+    ScriptUint_Line firstline;
+    v_LineList.push_back(firstline);
 }
 
 ScriptUint_Script::~ScriptUint_Script()
@@ -18,6 +20,9 @@ int ScriptUint_Script::InitScript()
         v_LineList.clear();
         //清空内存
         std::vector<ScriptUint_Line>().swap(v_LineList);
+        //脚本默认带第一行读取到换行后新加一行
+        ScriptUint_Line firstline;
+        v_LineList.push_back(firstline);
     }
     return 0;
 }
@@ -41,6 +46,9 @@ int ScriptUint_Script::PushLineBreak()
 {
     if (nLineNum_Now == nLineNum_Max)
     return -1;
+    //读取到换行插入一行
+    ScriptUint_Line line;
+    v_LineList.push_back(line);
     nLineNum_Now++;
     return 0;
 }

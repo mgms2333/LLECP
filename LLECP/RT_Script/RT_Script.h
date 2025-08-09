@@ -1,14 +1,16 @@
 #include<string>
+#include"ScriptVariable.h"
 #include"ScriptUint/ScriptUint_Script.h"
+#include"ScriptDefine.h"
 #include"sCmdNameDefine.h"
 //#include"HRC_Rbt.h"
 //通过#define HRCRbt HRC_Rbt::instance()使用HRC_Rbt函数
-#define SCRIPTNUMBER_MAX 64
+#define SCRIPTNUMBUFF_MAX 64
 
 class RT_ScriptSystem
 {
 private:
-    ScriptUint_Script ScripList[SCRIPTNUMBER_MAX];
+    ScriptUint_Script ScripList[SCRIPTNUMBUFF_MAX];
     //当前push的bufferIndex
     uint32_t nPushBufferIndex;
     //当前push的LineIndex
@@ -17,6 +19,13 @@ private:
     uint32_t nRunBufferIndex;
     uint32_t nRunLineIndex;
     uint32_t nRunCmdIndex;
+    //逻辑语句
+    std::vector<std::string> v_sLogicalStatement;
+    //运算符
+    std::vector<std::string> v_sOperator;
+    //变量
+    std::vector<ScriptVariable> v_ScriptVariableGlobal;
+    std::vector<ScriptVariable> v_ScriptVariableBuffer[SCRIPTNUMBUFF_MAX];
 
 public:
     RT_ScriptSystem(/* args */);
@@ -38,9 +47,12 @@ private:
     EX_RES RT_ScriptActuator(ScriptUint_Cmd* pUint_Cmd);
     //执行单元
     EX_RES ActuatorUint_IF(ScriptUint_Cmd* pUint_Cmd);
+    EX_RES ActuatorUint_ELSE(ScriptUint_Cmd* pUint_Cmd);
 
     //解释器
     ScriptUint_Cmd RT_ScriptInterpreter(std::string sCmd,int& nRet);
+    ScriptUint_Token AnalysisToken_Operator(std::string sToken);
+    ScriptUint_Token AnalysisToken_Variable(std::string sToken);
 
     //计算器
     ScriptUint_Token RT_ScriptCalculator(std::vector<ScriptUint_Token>);
@@ -48,4 +60,10 @@ private:
 private:
     int ResetRT_Script();
     int PushScriptCmd(ScriptUint_Cmd Cmd);
+
+
+
+    bool IsOperator(const char c);
+    bool IsVariable(const char c);
+    bool IsCharacter(const char c);
 };

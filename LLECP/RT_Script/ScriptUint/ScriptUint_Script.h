@@ -14,6 +14,7 @@ public:
     int InitScript();
     int ResetScript();
     int PushCmd(ScriptUint_Cmd scmd);
+    //换行新增一行
     int PushLineBreak();
     int GetLineNum();
     int GetLineRunIndex();

@@ -24,6 +24,7 @@ enum EX_RES
 };
 
 enum class ST_TokenType {
+
     TokenType_NULL,//空
     TokenType_Number,//数字
     TokenType_Operator,//操作运算符
@@ -36,11 +37,16 @@ enum class ST_TokenType {
 
 enum class ST_OperatorType {
     OperatorType_NULL,
-    OperatorType_PLUS,
-    OperatorType_Subtract,
-    OperatorType_Ride,
-    OperatorType_Division,
-    OperatorType_Factorial,
+    OperatorType_PLUS,//+
+    OperatorType_Subtract,//-
+    OperatorType_Ride,//*
+    OperatorType_Division,///
+    OperatorType_Equal,//=
+    OperatorType_Greater,//>
+    OperatorType_Less,//<
+    OperatorType_Unequal,//<>
+    OperatorType_GreaterEqual,//>=
+    OperatorType_LessEqual,//<=
     OperatorType_ERROR
 };
 

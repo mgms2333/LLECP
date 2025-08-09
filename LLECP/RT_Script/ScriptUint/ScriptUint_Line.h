@@ -2,7 +2,7 @@
 class ScriptUint_Line
 {
 private:
-    const uint32_t nCmdNum_Max = 999;
+    uint32_t nCmdNum_Max;
     uint32_t nCmdNum_Now;
     uint32_t nCmdRunIndex;
     bool bLineRunDone = false;
