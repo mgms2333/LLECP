@@ -62,7 +62,7 @@ private:
     int PushScriptCmd(ScriptUint_Cmd Cmd);
 
 
-
+    int VariableDeclaratio(int16_t bufferindex, ScriptVariable var);
     bool IsOperator(const char c);
     bool IsVariable(const char c);
     bool IsCharacter(const char c);

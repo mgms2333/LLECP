@@ -129,3 +129,20 @@ ScriptUint_Token RT_ScriptSystem::AnalysisToken_Variable(std::string sToken)
     }
     return Token;
 }
+
+int RT_ScriptSystem::VariableDeclaratio(int16_t bufferindex, ScriptVariable var)
+{
+    if(bufferindex>SCRIPTNUMBUFF_MAX)
+    {
+        return -1;
+    }
+    if(0 > bufferindex)
+    {
+        v_ScriptVariableGlobal.push_back(var);
+    }
+    else
+    {
+        v_ScriptVariableBuffer[bufferindex].push_back(var);
+    }
+    return 0;
+}
