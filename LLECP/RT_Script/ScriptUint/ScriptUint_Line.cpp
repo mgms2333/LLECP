@@ -50,7 +50,7 @@ int ScriptUint_Line::CmdRunDone()
 {
     v_CmdList[nCmdRunIndex].CmdRunDone();
     nCmdRunIndex ++;
-    if(nCmdRunIndex>nCmdNum_Now)
+    if(nCmdRunIndex==nCmdNum_Now)
     {
         bLineRunDone = true;
         return 1;

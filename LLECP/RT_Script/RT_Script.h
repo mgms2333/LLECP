@@ -1,16 +1,20 @@
 #include<string>
+#include<map>
 #include"ScriptVariable.h"
-#include"ScriptUint/ScriptUint_Script.h"
+#include"ScriptUint/ScriptUint_Buffer.h"
 #include"ScriptDefine.h"
 #include"sCmdNameDefine.h"
 //#include"HRC_Rbt.h"
 //通过#define HRCRbt HRC_Rbt::instance()使用HRC_Rbt函数
 #define SCRIPTNUMBUFF_MAX 64
 
+
+
 class RT_ScriptSystem
 {
 private:
-    ScriptUint_Script ScripList[SCRIPTNUMBUFF_MAX];
+    bool m_StartScritp;
+    ScriptUint_Buffer ScripList[SCRIPTNUMBUFF_MAX];
     //当前push的bufferIndex
     uint32_t nPushBufferIndex;
     //当前push的LineIndex
@@ -20,14 +24,19 @@ private:
     uint32_t nRunLineIndex;
     uint32_t nRunCmdIndex;
     //逻辑语句
-    std::vector<std::string> v_sLogicalStatement;
+    std::map<std::string, EN_LogicalStatementType> m_sLogicalStatement;
     //运算符
-    std::vector<std::string> v_sOperator;
+    std::map<std::string, EN_OperatorType> m_sOperator;
+    //数据类型
+    std::map<std::string, EN_VariableType> m_sVariableType;
+    //分隔符
+    std::map<std::string, EN_DelimiterType> m_sDelimiter;
     //变量
-    std::vector<ScriptVariable> v_ScriptVariableGlobal;
-    std::vector<ScriptVariable> v_ScriptVariableBuffer[SCRIPTNUMBUFF_MAX];
+    std::map<std::string, ScriptVariable> m_ScriptVariableGlobal;
+    std::map<std::string, ScriptVariable> m_ScriptVariableBuffer[SCRIPTNUMBUFF_MAX];
 
 public:
+
     RT_ScriptSystem(/* args */);
     ~RT_ScriptSystem();
 
@@ -42,10 +51,10 @@ public:
     int StopRT_Script();
     //实时调用
     void RT_ScriptTick();
-private:
+//private:
     //执行器
     EX_RES RT_ScriptActuator(ScriptUint_Cmd* pUint_Cmd);
-    //执行单元
+    //逻辑执行单元
     EX_RES ActuatorUint_IF(ScriptUint_Cmd* pUint_Cmd);
     EX_RES ActuatorUint_ELSE(ScriptUint_Cmd* pUint_Cmd);
 
@@ -53,17 +62,23 @@ private:
     ScriptUint_Cmd RT_ScriptInterpreter(std::string sCmd,int& nRet);
     ScriptUint_Token AnalysisToken_Operator(std::string sToken);
     ScriptUint_Token AnalysisToken_Variable(std::string sToken);
+    ScriptUint_Token AnalysisToken_LogicalStatement(std::string sToken);
+    ScriptUint_Token AnalysisToken_VariableType(std::string sToken);
+    ScriptUint_Token AnalysisToken_Function(std::string sToken);
+    ScriptUint_Token AnalysisToken_Delimiter(std::string sToken);
 
     //计算器
-    ScriptUint_Token RT_ScriptCalculator(std::vector<ScriptUint_Token>);
+    double RT_ScriptCalculator(std::vector<ScriptUint_Token>v_Token);
 
 private:
     int ResetRT_Script();
     int PushScriptCmd(ScriptUint_Cmd Cmd);
 
 
-    int VariableDeclaratio(int16_t bufferindex, ScriptVariable var);
+    int VariableDeclaratio(int16_t bufferindex,std::string sVarName, ScriptVariable var);
     bool IsOperator(const char c);
     bool IsVariable(const char c);
+    EN_VariableType IsVariableType(std::string str);
     bool IsCharacter(const char c);
+    bool IsNumber(const char c);
 };

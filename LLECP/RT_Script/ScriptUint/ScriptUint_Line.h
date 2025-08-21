@@ -8,6 +8,7 @@ private:
     bool bLineRunDone = false;
 
     std::vector<ScriptUint_Cmd> v_CmdList;
+    friend class RT_ScriptSystem;
 public:
     ScriptUint_Line();
     ~ScriptUint_Line();

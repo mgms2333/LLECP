@@ -21,11 +21,11 @@ int ScriptUint_Cmd::CmdRunDone()
     return 0;
 }
 
-ST_CmdType ScriptUint_Cmd::GetCmdType()
+EN_CmdType ScriptUint_Cmd::GetCmdType()
 {
     return stCmdType;
 }
-int ScriptUint_Cmd::SetCmdType(ST_CmdType setCmdType)
+int ScriptUint_Cmd::SetCmdType(EN_CmdType setCmdType)
 {
     stCmdType = setCmdType;
     return 0;

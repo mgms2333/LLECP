@@ -1,8 +1,10 @@
 foreach(EXAMPLE 
 		RT_ScriptExamples 
 		MotionPlanningExamples
-    EtherCATMasterExamples
+    #EtherCATMasterExamples
     )
     add_executable(${EXAMPLE} ${EXAMPLE}.cpp)
-    target_link_libraries(${EXAMPLE} PUBLIC RT_Script LLSMC EtherCATMaster)
+    target_link_libraries(${EXAMPLE} PUBLIC RT_Script LLSMC 
+    #EtherCATMaster
+    )
 endforeach()

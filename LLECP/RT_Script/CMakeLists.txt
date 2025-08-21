@@ -9,7 +9,7 @@ add_library(RT_Script
     ScriptUint/ScriptUint_Token.cpp
     ScriptUint/ScriptUint_Cmd.cpp
     ScriptUint/ScriptUint_Line.cpp
-    ScriptUint/ScriptUint_Script.cpp
+    ScriptUint/ScriptUint_Buffer.cpp
 )
 
 # 包含头文件目录（提供给主程序使用）
