@@ -1,13 +1,14 @@
-
-#include"Slave.h"
-
+#ifndef ETHERCATMASTER_H
+#define ETHERCATMASTER_H
+#include<vector>
+#include<string>
+#include"SOEM/include/soem/soem.h"
+#include <stdint.h>
 class EtherCATMaster
 {
 private:
-    //IGH
+    static ecx_contextt ctx;
     uint8_t m_nMasterIndex;
-    ec_master_t *m_pMaster = NULL;
-    ec_domain_t *m_pDomain = NULL;
     /* data */
     uint8_t m_nSlaveNum;
 
@@ -15,14 +16,6 @@ private:
 public:
     EtherCATMaster(uint8_t nMasterIndex);
     ~EtherCATMaster();
-    //cmd
-    int StarttMaster_cmd();
-    int RestartMaster_cmd();
-    int PrintSlaveStruct_cmd(uint8_t SlaveID);
-    int PrintSlaveState_cmd();
-    int CheckSlaveState_OP_cmd();
-
-    //InitMaster
-    int InitMaster();
-    int ScanSlave();
+    void Test();
 };
+#endif // ETHERCATMASTER_H

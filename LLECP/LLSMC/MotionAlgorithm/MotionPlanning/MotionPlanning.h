@@ -1,65 +1,105 @@
-#include"Luolimath.h"
-class MotionPlanning
+#ifndef __S_CURVE_GENERATOR_H_
+#define __S_CURVE_GENERATOR_H_
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+typedef struct {
+    double* t;
+    double* q;
+    double* v;
+    double* a;
+    double* j;
+    int path_num;
+    double T;
+} trajectory_segment;
+
+typedef struct 
 {
-private:
-    /* data */
-public:
-    MotionPlanning(/* args */);
-    ~MotionPlanning();
+    double q;
+    double v;
+    double a;
+    double j;
+    double r_t;
+} STMotionFrame;
 
-    //在PLCOpen中开始和停止的速度约束是一致的，因此不做区分，如有需要则重新计算
-    static int TrajectoryCalculation(double dCycle,ST_KinematicLimit stKinematicLimit,std::vector<ST_MotionTransitionFrame>& v_TransitionMotionFrame,std::vector<ST_MotionFrame>& v_Trajectory);
+/**
+* @brief      释放轨迹点对应的内存
+* @author     蒋宇航
+*/
+void free_trajectory_segment(trajectory_segment* traj);
 
-private:
-    //%%%%%%%%%%%%% 基于S型加减速的分段速度校验 //%%%%%%%%%%%%%
-    ////by 蒋宇航 2025.7.20 00：30
-    // 输入参数:  曲线段端点的速度
-    //           分段曲线的弧长
-    //           运动约束
-    // 输出参数：更新之后的各段端点的速度
-    //           更新之后各段曲线能达到的最大速度
-    static int SectionalSpeedVerification(v_double v_Segmentation_P,v_double v_Segmentation_V,ST_KinematicLimit stKinematicLimit,v_double& v_Vmax,v_double& v_Vel);
+/**
+* @brief      两点间s速度曲线（也称七段式轨迹）实现（考虑对称约束）
+*             加加速->匀加速->减加速->匀速->加减速->匀减速->减减速
+* @author     蒋宇航
+* @version    1.0
+* @param[in]  q0       - 起始位置
+* @param[in]  q1       - 目标位置
+* @param[in]  v0       - 起始速度
+* @param[in]  v1       - 目标速度
+* @param[in]  v_max    - 允许的最大速度
+* @param[in]  a_max    - 允许的最大加速度
+* @param[in]  j_max    - 允许的最大加加速度
+* @param[in]  t_start  - 起始时间
+* @param[in]  dt       - 控制周期
+* @return     [t, q, v, a, j, path_num, T]  - (时间序列->位置->速度->加速度->加加速度->规划所得轨迹点个数->规划总时间)
+*/
+trajectory_segment s_curve_generator(double q0, double q1, double v0, double v1, double v_max, double a_max, double j_max, double t_start, double dt);
 
-    //%%%%%%%%%%%%% 非对称S型曲线固定长度参数校正 //%%%%%%%%%%%%%
-    //by 蒋宇航 2025.7.20 5：30
-    // 根据给定的系统参数（A_max,J_max）和轨迹参数（V_s, V_e,V_max，S_seg）
-    // 求解S曲线各时间段T1,T2,T3,T4,T5,T6,T7
-    // 计算步骤: 1. 通过校验起点速度终点速度可达性与修正（在给定轨迹段长度小于系统从起始点速度运动到终点速度所需最短轨迹段长的情况下
-    //			  采用盛金公式修正起点速度和终点速度）；
-    //		    2. 校验最大加速度和最大减速度可达性；
-    //			3. 校验全程最大速度匀速运行可能性；
-    //			4. 校验最大速度可达性；
-    //			5. 二分法修正最大速度
-    // 输入参数: V_max -- 校验最大速度
-    //           运动约束
-    //           V_s -- 起点速度
-    //           V_e -- 终点速度
-    //           S_seg -- 轨迹段长度
-    // 输出参数：修正后的V_s，V_e，V_max，A_max，J_max
-    //           求解后的时间T1,T2,T3,T4,T5,T6,T7
-    static int AsymmetricSCurvesFixedLengthParametersCorrection(double V_s, double V_e,double v_Segmentation_V,ST_KinematicLimit stKinematicLimit, double S_seg,v_double& para);
+/**
+* @brief      多点间实现S型加减速规划
+* @author     蒋宇航
+* @version    1.0
+* @param[in]  q_points(1xN) - 位置向量
+* @param[in]  v_points(1xN) - 速度向量
+* @param[in]  v_max         - 允许的最大速度
+* @param[in]  a_max         - 允许的最大加速度
+* @param[in]  j_max         - 允许的最大加加速度
+* @param[in]  start_time    - 起始时间
+* @param[in]  dt            - 控制周期
+* @param[in]  N             - 对应多点间实现S型加减速规划中的给定输入点个数，即q_points、v_points数组大小
+* @return     [t, q, v, a, j, path_num, T]  - (时间序列->位置->速度->加速度->加加速度->规划所得轨迹点个数->规划总时间)
+*/
+trajectory_segment multi_s_curve_generator(double* q_points, double *v_points, double v_max, double a_max, double j_max, double start_time, double dt, int N);
 
-    //%%%%%%%%%%%%%%% 非对称曲线位移速度加速度加加速度计算 //%%%%%%%%%%%%%%
-    //by 蒋宇航 2025.7.20 6：30
-    //           根据给定的系统参数（A_max,J_max）和轨迹参数para给到（V_s, V_e,V_max，S_seg，T1、T2、T3、T4、T5、T6、T7）
-    //           求解S曲线每个控制周期内的位移、速度、加速度、加加速度
-    // 输入参数: t -- 某个离散时间，0 <= t <= Tf
-    //           以下参数以para给到
-    //              vTs -- S曲线各时间段T1、T2、T3、T4、T5、T6、T7。总时间Tf = T1 + T2 + T3 + T4 + T5 + T6 + T7.
-    //              A_acc_max -- 加速运动阶段的最大加速度
-    //              J_acc_max -- 加速运动阶段的最大加加速度
-    //              A_dec_max -- 减速运动阶段的最大加速度
-    //              J_dec_max -- 减速运动阶段的最大加加速度
-    //              V_s -- 轨迹初始速度
-    // 输出参数：st：位移； vel：速度；acc： 加速度； Jerk：加加速度
-    static int AsymmetricSCurveTimeScaling(double t,v_double para,ST_MotionFrame& stMotionFrame);
-
-};
+/**
+* @brief      过任意给定路径点的S型加减速规划(仅需要指定起始速度、终止速度，自动计算中间速度)
+* @author     蒋宇航
+* @version    1.0
+* @param[in]  q_points(1xN) - 位置向量
+* @param[in]  v_start       - 起始速度
+* @param[in]  v_end         - 终止速度
+* @param[in]  v_max         - 允许的最大速度
+* @param[in]  a_max         - 允许的最大加速度
+* @param[in]  j_max         - 允许的最大加加速度
+* @param[in]  start_time    - 起始时间
+* @param[in]  dt            - 控制周期
+* @param[in]  N             - 对应q_points数组大小
+* @return     [t, q, v, a, j, path_num, T]  - (时间序列->位置->速度->加速度->加加速度->规划所得轨迹点个数->规划总时间)
+*/
+trajectory_segment multi_s_curve_generator_based_on_path(double* q_points, double v_start, double v_end, double v_max, double a_max, double j_max, double start_time, double dt, int N);
 
 
-inline int TrajectoryCalculation(double dCycle, ST_KinematicLimit stKinematicLimit,
-                                 std::vector<ST_MotionTransitionFrame>& v_TransitionMotionFrame,
-                                 std::vector<ST_MotionFrame>& v_Trajectory)
-{
-    return MotionPlanning::TrajectoryCalculation(dCycle, stKinematicLimit, v_TransitionMotionFrame, v_Trajectory);
-}
+
+/**
+* @brief      两点间s速度曲线（也称七段式轨迹）实现（考虑对称约束）
+*             加加速->匀加速->减加速->匀速->加减速->匀减速->减减速
+* @author     蒋宇航
+* @version    1.0
+* @param[in]  q0       - 起始位置
+* @param[in]  q1       - 目标位置
+* @param[in]  v0       - 起始速度
+* @param[in]  v1       - 目标速度
+* @param[in]  v_max    - 允许的最大速度
+* @param[in]  a_max    - 允许的最大加速度
+* @param[in]  j_max    - 允许的最大加加速度
+* @param[in]  t_start  - 起始时间
+* @param[in]  dt       - 控制周期
+* @param[in]  FrameTime- 当前时间
+* @return     [t, q, v, a, j, path_num, T]  - (时间序列->位置->速度->加速度->加加速度->规划所得轨迹点个数->规划总时间)
+*/
+STMotionFrame s_curve_generator_RT(double q0, double q1, double v0, double v1, double v_max, double a_max, double j_max, double t_start, double dt,double FrameTime);
+
+#endif

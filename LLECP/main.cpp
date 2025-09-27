@@ -16,6 +16,8 @@
 #include"RT_Script.h"
 int main() 
 {
+
+    
     RT_ScriptSystem *p = new RT_ScriptSystem();
     p->InitRT_ScriptSystem();
     p->PushScriptCmd("X:DINT;");

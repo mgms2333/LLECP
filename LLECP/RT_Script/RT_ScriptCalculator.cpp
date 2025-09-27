@@ -26,6 +26,7 @@ double RT_ScriptSystem::RT_ScriptCalculator(std::vector<ScriptUint_Token> v_Toke
                             v_Token.erase(v_Token.begin() + i, v_Token.begin() + j + 1);
                             //用新值的Token替换掉原来的括号一大堆Token
                             v_Token.insert(v_Token.begin() + i,newToken);
+                            break;
                         }
                         else
                         {
