@@ -189,7 +189,3 @@ set (CPACK_PACKAGE_CONTACT info.soem@rt-labs.com)
 set (CPACK_PACKAGE_NAME soem)
 set (CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
 include (CPack)
-
-target_include_directories(soem PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-)
