@@ -74,15 +74,15 @@ set(CMAKE_C_OUTPUT_EXTENSION_REPLACE 1)
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 
 add_library(soem
-  src/ec_base.c
-  src/ec_coe.c
-  src/ec_config.c
-  src/ec_dc.c
-  src/ec_eoe.c
-  src/ec_foe.c
-  src/ec_main.c
-  src/ec_print.c
-  src/ec_soe.c
+  soem/ec_base.c
+  soem/ec_coe.c
+  soem/ec_config.c
+  soem/ec_dc.c
+  soem/ec_eoe.c
+  soem/ec_foe.c
+  soem/ec_main.c
+  soem/ec_print.c
+  soem/ec_soe.c
 )
 
 target_include_directories(soem PUBLIC
@@ -114,10 +114,7 @@ endmacro()
 convert_mac(${EC_PRIMARY_MAC} EC_PRIMARY_MAC_ARRAY)
 convert_mac(${EC_SECONDARY_MAC} EC_SECONDARY_MAC_ARRAY)
 
-configure_file(
-  include/soem/ec_options.h.in
-  ${SOEM_BINARY_DIR}/include/soem/ec_options.h
-)
+
 
 install(
   TARGETS soem
@@ -147,22 +144,6 @@ install(FILES
   DESTINATION include/soem
 )
 
-install(FILES
-  scripts/eniconv.py
-  DESTINATION scripts
-)
-
-install(FILES
-  cmake/AddENI.cmake
-  DESTINATION cmake
-)
-
-install(FILES
-  README.md
-  LICENSE.md
-  DESTINATION .
-)
-
 if(SOEM_BUILD_SAMPLES)
   add_subdirectory(samples/ec_sample)
   add_subdirectory(samples/eepromtool)
@@ -184,8 +165,6 @@ endif()
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/${CMAKE_SYSTEM_NAME}.cmake)
 
 include (InstallRequiredSystemLibraries)
-set (CPACK_RESOURCE_FILE_LICENSE "${SOEM_SOURCE_DIR}/LICENSE.md")
-set (CPACK_PACKAGE_CONTACT info.soem@rt-labs.com)
 set (CPACK_PACKAGE_NAME soem)
 set (CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
 include (CPack)

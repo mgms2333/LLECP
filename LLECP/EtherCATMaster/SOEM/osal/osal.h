@@ -11,7 +11,8 @@
 extern "C" {
 #endif
 
-#include "osal_defs.h"
+// #include "osal_defs.h"
+#include"linux/osal_defs.h"
 #include <stdint.h>
 #include <stddef.h>
 

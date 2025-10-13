@@ -1,8 +1,9 @@
-#include "MotionPlanning.h"
+#include"MotionPlanning.h"
 
 // 用于控制内存申请，设置允许的最大路径点个数
 #define MAX_PATH_NUM_ALLOWED 100000
-#define CalculationAccuracy 0.0000001
+#define ITERATIVESTEPS 0.00001
+
 void free_trajectory_segment(trajectory_segment* traj) {
     if (traj->t != NULL) {
         free(traj->t);
@@ -29,7 +30,6 @@ void free_trajectory_segment(trajectory_segment* traj) {
         traj->j = NULL;
     }
 }
-
 
 STMotionFrame s_curve_generator_RT(double q0, double q1, double v0, double v1, double v_max, double a_max, double j_max, double t_start, double dt,double FrameTime)
 {
@@ -130,8 +130,8 @@ STMotionFrame s_curve_generator_RT(double q0, double q1, double v0, double v1, d
             //printf("最大速度: [%f]\n", v_m);
         }
         else {
-            //printf("递归计算可达到的最大加速度\n");
-            step = CalculationAccuracy;
+            //printf("递归计算可达到的最大加速度\n");          
+            step = ITERATIVESTEPS;
             for (double i = 1 - step; i = i - step; i >= step) {
                 double temp = i * a_max;
                 T_j = temp / j_max;
@@ -285,6 +285,7 @@ STMotionFrame s_curve_generator_RT(double q0, double q1, double v0, double v1, d
     return stMotionFrame;
 }
 
+
 trajectory_segment s_curve_generator(double q0, double q1, double v0, double v1, double v_max, double a_max, double j_max, double t_start, double dt) {
     double v_min, a_min, j_min, v_max_origin, v_min_origin, a_max_origin, a_min_origin, j_max_origin, j_min_origin, v_m;
     int direction, n;
@@ -394,7 +395,7 @@ trajectory_segment s_curve_generator(double q0, double q1, double v0, double v1,
         }
         else {
             printf("递归计算可达到的最大加速度\n");
-            step = CalculationAccuracy;
+            step = ITERATIVESTEPS;
             for (double i = 1 - step; i = i - step; i >= step) {
                 double temp = i * a_max;
                 T_j = temp / j_max;
@@ -688,4 +689,1024 @@ trajectory_segment multi_s_curve_generator_based_on_path(double* q_points, doubl
     }
 
     return res;
+}
+
+
+int Trapezoid_plan(ST_PlanParams stsetParam, ST_PlanParams& stActParam, ST_PlanData& trackData)
+{
+    double q0, q1, Vs, Ve, Vmax, Amax;
+    double T_acc, T_flat, T_dec, T, d_acc, d_dec, A_tem, Vmax_new;
+    int direction;
+    int err;
+
+
+
+    q0 = stsetParam.q0;
+    q1 = stsetParam.q1;
+    Vs = stsetParam.v0;
+    Ve = stsetParam.v1;
+    Vmax = stsetParam.V_max;
+    Amax = stsetParam.A_max;
+
+    T_acc = 0;
+    T_flat = 0;
+    T_dec = 0;
+    d_acc = 0;
+    d_dec = 0;
+    A_tem = 0;
+    Vmax_new = 0;
+    err = 0;
+    if (Vmax <= Zero || Amax <= Zero) {
+        err = ERROR_INVALID_PARAMETERS;
+        return err;
+    }
+    if ((Vmax<Vs && Vmax>Ve) || (Vmax > Vs && Vmax < Ve) || (Vmax < Vs && Vmax < Ve)) {
+        if ((Vs - Ve) > Zero) {
+            Vmax = Vs;
+        }
+        else {
+            Vmax = Ve;
+        }
+    }
+    direction = (q1 > q0) ? 1.0 : -1.0;
+    Vs = direction * Vs;
+    Ve = direction * Ve;
+    q0 = direction * q0;
+    q1 = direction * q1;
+    // 计算中间参数
+    T_acc = std::abs(Vmax - Vs) / Amax;
+    T_dec = std::abs(Vmax - Ve) / Amax;
+    T_flat = std::abs(q1 - q0) / Vmax - (T_acc / 2) * (1 + Vs / Vmax) - (T_dec / 2) * (1 + Ve / Vmax);
+    d_acc = abs(Vmax * Vmax - Vs * Vs) / (2 * Amax);  // 加速阶段位移
+    d_dec = abs(Vmax * Vmax - Ve * Ve) / (2 * Amax);  // 减速阶段位移
+
+    // 判断是否有匀速段
+    if (T_flat < 0) {
+        if ((std::abs(q1 - q0) - d_acc) < Zero || (std::abs(q1 - q0) - d_dec < Zero)) {
+            if ((Vs - Ve) > Zero) {
+                Vmax = Vs;
+                T_dec = (2 * std::abs(q0 - q1)) / abs(Vs + Ve);
+                if (T_dec == 0) {
+                    err = ERROR_INVALID_PARAMETERS;
+                    return err;
+                }
+                A_tem = (Vs - Ve) / T_dec;
+                if (A_tem - Amax > 0) {
+                    err = ERROR_DISPLACEMENT_TOO_SMALL;
+                    return err;
+                }
+                Amax = A_tem;
+                T_acc = 0;
+                T_flat = 0;
+                if (Amax == 0)
+                {
+                    err = ERROR_INVALID_PARAMETERS;
+                    return err;
+                }
+                T_dec = std::abs(Vmax - Ve) / Amax;
+            }
+            else if ((Vs - Ve) < Zero) {
+                Vmax = Ve;
+                T_acc = (2 * std::abs(q0 - q1)) / abs(Vs + Ve);
+                if (T_acc == 0) {
+                    err = ERROR_INVALID_PARAMETERS;
+                    return err;
+                }
+                A_tem = (Ve - Vs) / T_acc;
+                if (A_tem - Amax > Zero) {
+                    err = ERROR_DISPLACEMENT_TOO_SMALL;
+                    return err;
+                }
+                Amax = A_tem;
+                T_acc = std::abs(Vmax - Vs) / Amax;
+                T_flat = 0;
+                T_dec = 0;
+            }
+            else {
+                Vmax_new = std::sqrt((2 * std::abs(q0 - q1) * Amax + Vs * Vs + Ve * Ve) / 2);
+                if (Vmax_new < Vs && Vmax_new < Ve && Vmax_new < Zero) {
+                    if (Vs - Ve > Zero) {
+                        Vmax = Vs;
+                    }
+                    else {
+                        Vmax = Ve;
+                    }
+                }
+                else if ((Vmax_new - Vmax) > Zero) {
+                    err = ERROR_CALCULATION_01;
+                    return err;
+                }
+                Vmax = Vmax_new;
+                T_acc = std::abs(Vmax - Vs) / Amax;
+                T_dec = std::abs(Vmax - Ve) / Amax;
+                d_acc = std::abs(Vmax * Vmax - Vs * Vs) / (2 * Amax);
+                d_dec = std::abs(Vmax * Vmax - Ve * Ve) / (2 * Amax);
+                T_flat = std::abs(q0 - q1) / Vmax - (T_acc / 2) * (1 + Vs / Vmax) - (T_dec / 2) * (1 + Ve / Vmax);
+                if (T_flat < Zero) {
+                    err = ERROR_CALCULATION_02;
+                    return err;
+                }
+            }
+        }
+        else {
+            Vmax_new = std::sqrt((2 * std::abs(q0 - q1) * Amax + Vs * Vs + Ve * Ve) / 2);
+            if (Vmax_new < Vs && Vmax_new < Ve && Vmax_new < Zero) {
+                if (Vs - Ve > Zero) {
+                    Vmax = Vs;
+                }
+                else {
+                    Vmax = Ve;
+                }
+            }
+            else if ((Vmax_new - Vmax) > Zero) {
+                err = ERROR_CALCULATION_01;
+                return err;
+            }
+            Vmax = Vmax_new;
+            T_acc = std::abs(Vmax - Vs) / Amax;
+            T_dec = std::abs(Vmax - Ve) / Amax;
+            d_acc = std::abs(Vmax * Vmax - Vs * Vs) / (2 * Amax);
+            d_dec = std::abs(Vmax * Vmax - Ve * Ve) / (2 * Amax);
+            T_flat = std::abs(q0 - q1) / Vmax - (T_acc / 2) * (1 + Vs / Vmax) - (T_dec / 2) * (1 + Ve / Vmax);
+            if (T_flat < Zero) {
+                err = ERROR_CALCULATION_02;
+                return err;
+            }
+        }
+    }
+    else {
+        if ((Vmax - Vs) < Zero || (Vmax - Ve) < Zero) {
+            if (Vs - Ve > Zero) {
+                Vmax = Vs;
+            }
+            else {
+                Vmax = Ve;
+            }
+            T_acc = std::abs(Vmax - Vs) / Amax;
+            T_dec = std::abs(Vmax - Ve) / Amax;
+            T_flat = std::abs(q0 - q1) / Vmax - (T_acc / 2) * (1 + Vs / Vmax) - (T_dec / 2) * (1 + Ve / Vmax);
+        }
+    }
+    // 总时间
+    T = T_acc + T_flat + T_dec;
+
+    stActParam.q0 = q0;
+    stActParam.q1 = q1;
+    stActParam.v0 = Vs;
+    stActParam.v1 = Ve;
+    stActParam.V_max = Vmax;
+    stActParam.A_max = Amax;
+    trackData.Ta = T_acc;
+    trackData.Tv = T_flat;
+    trackData.Td = T_dec;
+    trackData.T = T;
+    trackData.direction = direction;
+
+    return err;
+}
+int Trapezoid_Inter(ST_PlanParams stActParam, ST_PlanData trackData, double t, ST_InterParams& stData)
+{
+    double q0, q1, Vs, Ve, Vmax, Amax;
+    double T_acc, T_flat, T_dec, T, d_acc, d_dec, A_tem, Vmax_new;
+    double  P, V, A;
+    int direction;
+    int err = 0;
+
+    q0 = stActParam.q0;
+    q1 = stActParam.q1;
+    Vs = stActParam.v0;
+    Ve = stActParam.v1;
+    Vmax = stActParam.V_max;
+    Amax = stActParam.A_max;
+    T_acc = trackData.Ta;
+    T_flat = trackData.Tv;
+    T_dec = trackData.Td;
+    T = trackData.T;
+    direction = trackData.direction;
+
+    P = 0;
+    V = 0;
+    A = 0;
+
+    // 计算各阶段轨迹
+    if (t <= T_acc) {
+        // 加速阶段
+        A = Amax;
+        V = Vs + Amax * t;
+        P = q0 + Vs * t + 0.5 * Amax * t * t;
+    }
+    else if (t <= (T_acc + T_flat)) {
+        // 匀速阶段
+        A = 0;
+        V = Vmax;
+        P = (Vmax - Vs) / 2 * (2 * t - T_acc) + Vs * t + q0;
+    }
+    else if (t <= T) {
+        // 减速阶段
+        A = -Amax;
+        V = Ve + Amax * (T - t);
+        P = -Ve * (T - t) - 0.5 * Amax * (T - t) * (T - t) + q1;
+    }
+    else {
+        err = ERROR_INVALID_PARAMETERS;
+        return err;
+    }
+    stData.P = direction * P;
+    stData.V = direction * V;
+    stData.A = direction * A;
+
+    return err;
+}
+
+int S_curve_plan(ST_PlanParams stsetParam, ST_PlanParams& stActParam, ST_PlanData& trackData)
+{
+    double q0, q1, v0, v1, v_max, a_max, j_max, v_min, a_min, j_min;
+    double v_max_origin, v_min_origin, a_max_origin, a_min_origin, j_max_origin, j_min_origin, v_m;
+    int direction, n;
+    int err;
+    double T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_j1, T_j2, T_j, T_a, T_v, T_d, T;
+    double delta, step;
+
+
+    q0 = stsetParam.q0;
+    q1 = stsetParam.q1;
+    v0 = stsetParam.v0;
+    v1 = stsetParam.v1;
+    v_max = stsetParam.V_max;
+    v_min = -stsetParam.V_max;
+    a_max = stsetParam.A_max;
+    a_min = -stsetParam.A_max;
+    j_max = stsetParam.J_max;
+    j_min = -stsetParam.J_max;
+
+    T_j1 = 0;
+    T_j2 = 0;
+    T_a = 0;
+    T_d = 0;
+    T_v = 0;
+    err = 0;
+
+    // 输入归一化处理
+    v_max_origin = v_max;
+    v_min_origin = v_min;
+    a_max_origin = a_max;
+    a_min_origin = a_min;
+    j_max_origin = j_max;
+    j_min_origin = j_min;
+
+    direction = ((q1 - q0) > 0) ? 1 : -1;
+    q0 = direction * q0;
+    q1 = direction * q1;
+    v0 = direction * v0;
+    v1 = direction * v1;
+
+    v_max = (direction + 1) / 2 * v_max_origin + (direction - 1) / 2 * v_min_origin;
+    v_min = (direction + 1) / 2 * v_min_origin + (direction - 1) / 2 * v_max_origin;
+    a_max = (direction + 1) / 2 * a_max_origin + (direction - 1) / 2 * a_min_origin;
+    a_min = (direction + 1) / 2 * a_min_origin + (direction - 1) / 2 * a_max_origin;
+    j_max = (direction + 1) / 2 * j_max_origin + (direction - 1) / 2 * j_min_origin;
+    j_min = (direction + 1) / 2 * j_min_origin + (direction - 1) / 2 * j_max_origin;
+
+    if ((v_max - v0) * j_max < a_max * a_max) {
+        T_j1 = sqrt((v_max - v0) / j_max);
+        T_a = 2 * T_j1;
+        a_max = T_j1 * j_max;
+    }
+    else {
+        T_j1 = a_max / j_max;
+        T_a = T_j1 + (v_max - v0) / a_max;
+    }
+
+    if ((v_max - v1) * j_max < a_max * a_max) {
+        T_j2 = sqrt((v_max - v1) / j_max);
+        T_d = 2 * T_j2;
+        a_min = T_j2 * j_min;
+    }
+    else {
+        T_j2 = a_max / j_max;
+        T_d = T_j2 + (v_max - v1) / a_max;
+    }
+
+    T_v = (q1 - q0) / v_max - T_a / 2 * (1 + v0 / v_max) - T_d / 2 * (1 + v1 / v_max);
+
+    if (T_v >= 0) {
+        // 最大速度可达
+        v_m = v_max;
+        T_1 = T_j1;
+        T_2 = T_a - 2 * T_j1;
+        T_3 = T_j1;
+        T_4 = T_v;
+        T_5 = T_j2;
+        T_6 = T_d - 2 * T_j2;
+        T_7 = T_j2;
+    }
+    else {
+        // 最大速度不可达
+        T_j1 = a_max / j_max;
+        T_j2 = a_max / j_max;
+        T_j = T_j1;
+        delta = pow(a_max, 4) / (j_max * j_max) + 2 * (v0 * v0 + v1 * v1) + a_max * (4 * (q1 - q0) - 2 * a_max / j_max * (v0 + v1));
+        T_a = (a_max * a_max / j_max - 2 * v0 + sqrt(delta)) / (2 * a_max);
+        T_d = (a_max * a_max / j_max - 2 * v1 + sqrt(delta)) / (2 * a_max);
+        T_v = 0;
+
+        T_1 = T_j1;
+        T_2 = T_a - 2 * T_j1;
+        T_3 = T_j1;
+        T_4 = T_v;
+        T_5 = T_j2;
+        T_6 = T_d - 2 * T_j2;
+        T_7 = T_j2;
+
+        if ((T_a >= 2 * T_j) && (T_d >= 2 * T_j)) {
+            a_max = T_j1 * j_max;
+            a_min = T_j2 * j_min;
+            v_m = v0 + (T_a - T_j1) * a_max;
+            v_max = v_m;
+        }
+        else {
+            step = ITERATIVESTEPS;
+            for (double i = 1 - step; i = i - step; i >= step) {
+                double temp = i * a_max;
+                T_j = temp / j_max;
+                delta = pow(temp, 4) / (j_max * j_max) + 2 * (v0 * v0 + v1 * v1) + temp * (4 * (q1 - q0) - 2 * temp / j_max * (v0 + v1));
+                T_a = (temp * temp / j_max - 2 * v0 + sqrt(delta)) / (2 * temp);
+                T_d = (temp * temp / j_max - 2 * v1 + sqrt(delta)) / (2 * temp);
+                if ((T_a >= 2 * T_j) && (T_d >= 2 * T_j)) {
+                    a_max = temp;
+                    a_min = -a_max;
+                    v_m = v0 + (T_a - T_j1) * a_max;
+                    v_max = v_m;
+                    T_1 = T_j;
+                    T_2 = T_a - 2 * T_j;
+                    T_3 = T_j;
+                    T_4 = 0;
+                    T_5 = T_j;
+                    T_6 = T_d - 2 * T_j;
+                    T_7 = T_j;
+                    T_v = 0;
+
+                    break;
+                }
+                else if ((T_a < 0) && (v0 > v1)) {
+                    T_a = 0;
+                    T_v = 0;
+                    T_d = 2 * (q1 - q0) / (v1 + v0);
+                    T_j2 = (j_max * (q1 - q0) - sqrt(j_max * (j_max * (q1 - q0) * (q1 - q0) + (v1 + v0) * (v1 + v0) * (v1 - v0)))) / (j_max * (v1 + v0));
+                    a_min = -T_j2 * j_max;
+
+                    T_1 = 0;
+                    T_2 = 0;
+                    T_3 = 0;
+                    T_4 = 0;
+                    T_5 = T_j2;
+                    T_6 = T_d - 2 * T_j2;
+                    T_7 = T_j2;
+
+                    v_m = v0;
+                    v_max = v_m;
+                    break;
+                }
+                else if ((T_d < 0) && (v0 < v1)) {
+                    T_d = 0;
+                    T_v = 0;
+                    T_a = 2 * (q1 - q0) / (v1 + v0);
+                    T_j1 = (j_max * (q1 - q0) - sqrt(j_max * (j_max * (q1 - q0) * (q1 - q0) - (v1 + v0) * (v1 + v0) * (v1 - v0)))) / (j_max * (v1 + v0));
+                    a_min = T_j1 * j_max;
+
+                    T_1 = T_j1;
+                    T_2 = T_a - 2 * T_j1;
+                    T_3 = T_j1;
+                    T_4 = 0;
+                    T_5 = 0;
+                    T_6 = 0;
+                    T_7 = 0;
+
+                    v_m = v1;
+                    v_max = v_m;
+                    break;
+                }
+            }
+        }
+    }
+
+    // 总时间
+    T = T_a + T_v + T_d;
+    stActParam.q0 = q0;
+    stActParam.q1 = q1;
+    stActParam.v0 = v0;
+    stActParam.v1 = v1;
+    stActParam.V_max = v_max;
+    trackData.A_amax = a_max;
+    trackData.A_dmax = a_min;
+    trackData.J_amax = j_max;
+    trackData.J_dmax = -j_max;
+    trackData.Tja = T_j1;
+    trackData.Tjd = T_j2;
+    trackData.Ta = T_a;
+    trackData.Td = T_d;
+    trackData.Tv = T_v;
+    trackData.T = T;
+    trackData.direction = direction;
+
+    return err;
+}
+int S_curve_Inter(ST_PlanParams stActParam, ST_PlanData trackData, double t, ST_InterParams& stData)
+{
+    double q0, q1, v0, v1, v_max, a_max, j_max, v_min, a_min, j_min;
+    double T_1, T_2, T_3, T_4, T_5, T_6, T_7, T_j1, T_j2, T_j, T_a, T_v, T_d;
+    double t1, t2, t3, t4, t5, t6, t7, T;
+    double  j, a, v, q;
+    double cur_start_time, last_v, last_q, t_start;
+    int direction;
+    int err;
+
+    q0 = stActParam.q0;
+    q1 = stActParam.q1;
+    v0 = stActParam.v0;
+    v1 = stActParam.v1;
+    v_max = stActParam.V_max;
+    v_min = -stActParam.V_max;
+    a_max = trackData.A_amax;
+    a_min = trackData.A_dmax;
+    j_max = trackData.J_amax;
+    j_min = trackData.J_dmax;
+    T_j1 = trackData.Tja;
+    T_j2 = trackData.Tjd;
+    T_a = trackData.Ta;
+    T_d = trackData.Td;
+    T_v = trackData.Tv;
+    T = trackData.T;
+    direction = trackData.direction;
+    err = 0;
+    t_start = 0;
+
+
+    // 时间点划分
+    T_1 = T_j1;
+    T_2 = T_a - 2 * T_j1;
+    T_3 = T_j1;
+    T_4 = T_v;
+    T_5 = T_j2;
+    T_6 = T_d - 2 * T_j2;
+    T_7 = T_j2;
+
+    t1 = t_start + T_1;
+    t2 = t1 + T_2;
+    t3 = t2 + T_3;
+    t4 = t3 + T_4;
+    t5 = t4 + T_5;
+    t6 = t5 + T_6;
+    t7 = t6 + T_7;
+
+    last_v = v0;
+    last_q = q0;
+    if ((t <= t1) && (T_1 > 0)) {
+        cur_start_time = t_start;
+        last_v = v0;
+        last_q = q0;
+        // 加加速阶段
+        j = j_max;
+        a = j_max * (t - cur_start_time);
+        v = last_v + (j_max * (t - cur_start_time) * (t - cur_start_time)) / 2;
+        q = last_q + ((t - cur_start_time) * (j_max * t * t - 2 * j_max * t * cur_start_time + j_max * cur_start_time * cur_start_time + 6 * last_v)) / 6;
+    }
+    else if ((t <= t2) && (T_2 > 0)) {
+        cur_start_time = t_start + T_1;
+        last_v = v0 + (j_max * T_1 * T_1) / 2;
+        last_q = q0 + ((T_1) * (j_max * (t_start + T_1) * (t_start + T_1) - 2 * j_max * (t_start + T_1) * t_start + j_max * t_start * t_start + 6 * v0)) / 6;
+        // 匀加速阶段
+        j = 0;
+        a = j_max * T_1;
+        v = last_v + T_1 * j_max * (t - cur_start_time);
+        q = last_q + ((t - cur_start_time) * (2 * last_v + T_1 * t * j_max - T_1 * cur_start_time * j_max)) / 2;
+    }
+    else if ((t <= t3) && (T_3 > 0)) {
+        cur_start_time = t_start + T_1 + T_2;
+        last_v = (j_max * T_1 * T_1) / 2 + T_2 * j_max * T_1 + v0;
+        last_q = (j_max * pow(T_1, 3)) / 6 + (j_max * T_1 * T_1 * T_2) / 2 + (j_max * T_1 * T_2 * T_2) / 2 + v0 * T_1 + v0 * T_2 + q0;
+        // 减加速阶段
+        j = -j_max;
+        a = j_max * T_1 - j_max * (t - cur_start_time);
+        v = last_v + (j_max * (t - cur_start_time) * (2 * T_1 - t + cur_start_time)) / 2;
+        q = last_q + ((t - cur_start_time) * (-j_max * t * t + 2 * j_max * t * cur_start_time + 3 * T_1 * j_max * t - j_max * cur_start_time * cur_start_time - 3 * T_1 * j_max * cur_start_time + 6 * last_v)) / 6;
+    }
+    else if ((t <= t4) && (T_4 > 0)) {
+        cur_start_time = t_start + T_1 + T_2 + T_3;
+        last_v = (j_max * T_1 * T_1) / 2 + T_2 * j_max * T_1 + v0 + (j_max * T_3 * (2 * T_1 - T_3)) / 2;
+        last_q = (j_max * pow(T_1, 3)) / 6 + (j_max * T_1 * T_1 * T_2) / 2 + (j_max * T_1 * T_1 * T_3) / 2 + (j_max * T_1 * T_2 * T_2) / 2 + j_max * T_1 * T_2 * T_3 + (j_max * T_1 * T_3 * T_3) / 2 + v0 * T_1 + v0 * T_2 - (j_max * pow(T_3, 3)) / 6 + v0 * T_3 + q0;
+        // 匀速阶段
+        j = 0;
+        a = 0;
+        v = last_v;
+        q = last_q + last_v * (t - cur_start_time);
+    }
+    else if ((t <= t5) && (T_5 > 0)) {
+        cur_start_time = t_start + T_1 + T_2 + T_3 + T_4;
+        last_v = (j_max * T_1 * T_1) / 2 + T_2 * j_max * T_1 + v0 + (j_max * T_3 * (2 * T_1 - T_3)) / 2;
+        last_q = (j_max * pow(T_1, 3)) / 6 + (j_max * T_1 * T_1 * T_2) / 2 + (j_max * T_1 * T_1 * T_3) / 2 + (T_4 * j_max * T_1 * T_1) / 2 + (j_max * T_1 * T_2 * T_2) / 2 + j_max * T_1 * T_2 * T_3 + T_4 * j_max * T_1 * T_2 + (j_max * T_1 * T_3 * T_3) / 2 + T_4 * j_max * T_1 * T_3 + v0 * T_1 + v0 * T_2 - (j_max * pow(T_3, 3)) / 6 - (T_4 * j_max * T_3 * T_3) / 2 + v0 * T_3 + q0 + T_4 * v0;
+        // 加减速阶段
+        j = j_min;
+        a = j_min * (t - cur_start_time);
+        v = last_v + (j_min * (t - cur_start_time) * (t - cur_start_time)) / 2;
+        q = last_q + ((t - cur_start_time) * (j_min * t * t - 2 * j_min * t * cur_start_time + j_min * cur_start_time * cur_start_time + 6 * last_v)) / 6;
+    }
+    else if ((t <= t6) && (T_6 > 0)) {
+        cur_start_time = t_start + T_1 + T_2 + T_3 + T_4 + T_5;
+        last_v = (j_max * T_1 * T_1) / 2 + T_2 * j_max * T_1 + v0 + (j_max * T_3 * (2 * T_1 - T_3)) / 2 + (j_min * T_5 * T_5) / 2;
+        last_q = (j_max * pow(T_1, 3)) / 6 + (j_max * T_1 * T_1 * T_2) / 2 + (j_max * T_1 * T_1 * T_3) / 2 + (j_max * T_1 * T_1 * T_5) / 2 + (T_4 * j_max * T_1 * T_1) / 2 + (j_max * T_1 * T_2 * T_2) / 2 + j_max * T_1 * T_2 * T_3 + j_max * T_1 * T_2 * T_5 + T_4 * j_max * T_1 * T_2 + (j_max * T_1 * T_3 * T_3) / 2 + j_max * T_1 * T_3 * T_5 + T_4 * j_max * T_1 * T_3 + v0 * T_1 + v0 * T_2 - (j_max * pow(T_3, 3)) / 6 - (j_max * T_3 * T_3 * T_5) / 2 - (T_4 * j_max * T_3 * T_3) / 2 + v0 * T_3 + (j_min * pow(T_5, 3)) / 6 + v0 * T_5 + q0 + T_4 * v0;
+        // 匀减速阶段
+        j = 0;
+        a = j_min * T_5;
+        v = last_v + T_5 * j_min * (t - cur_start_time);
+        q = last_q + ((t - cur_start_time) * (2 * last_v + T_5 * t * j_min - T_5 * cur_start_time * j_min)) / 2;
+    }
+    else if ((T_7 > 0)) {
+        cur_start_time = t_start + T_1 + T_2 + T_3 + T_4 + T_5 + T_6;
+        last_v = (j_max * T_1 * T_1) / 2 + T_2 * j_max * T_1 + v0 + (j_max * T_3 * (2 * T_1 - T_3)) / 2 + (j_min * T_5 * T_5) / 2 + T_5 * j_min * T_6;
+        last_q = (j_max * pow(T_1, 3)) / 6 + (j_max * T_1 * T_1 * T_2) / 2 + (j_max * T_1 * T_1 * T_3) / 2 + (j_max * T_1 * T_1 * T_5) / 2 + (j_max * T_1 * T_1 * T_6) / 2 + (T_4 * j_max * T_1 * T_1) / 2 + (j_max * T_1 * T_2 * T_2) / 2 + j_max * T_1 * T_2 * T_3 + j_max * T_1 * T_2 * T_5 + j_max * T_1 * T_2 * T_6 + T_4 * j_max * T_1 * T_2 + (j_max * T_1 * T_3 * T_3) / 2 + j_max * T_1 * T_3 * T_5 + j_max * T_1 * T_3 * T_6 + T_4 * j_max * T_1 * T_3 + v0 * T_1 + v0 * T_2 - (j_max * pow(T_3, 3)) / 6 - (j_max * T_3 * T_3 * T_5) / 2 - (j_max * T_3 * T_3 * T_6) / 2 - (T_4 * j_max * T_3 * T_3) / 2 + v0 * T_3 + (j_min * pow(T_5, 3)) / 6 + (j_min * T_5 * T_5 * T_6) / 2 + (j_min * T_5 * T_6 * T_6) / 2 + v0 * T_5 + v0 * T_6 + q0 + T_4 * v0;
+        // 减减速阶段
+        j = -j_min;
+        a = j_min * T_5 - j_min * (t - cur_start_time);
+        v = last_v + (j_min * (t - cur_start_time) * (2 * T_5 - t + cur_start_time)) / 2;
+        q = last_q + ((t - cur_start_time) * (-j_min * t * t + 2 * j_min * t * cur_start_time + 3 * T_5 * j_min * t - j_min * cur_start_time * cur_start_time - 3 * T_5 * j_min * cur_start_time + 6 * last_v)) / 6;
+    }
+
+    stData.J = direction * j;
+    stData.A = direction * a;
+    stData.V = direction * v;
+    stData.P = direction * q;
+    return err;
+}
+
+int FifteenSeg_plan(ST_PlanParams stsetParam, ST_PlanParams& stActParam, ST_PlanData& trackData) {
+    double q0, q1, v0, v1, V_max, A_amax, A_dmax, J_amax, J_dmax, S_max;
+    double Tsa, Tsd, Tja, Tjd, Ta, Td, Tv, T;
+    double S_juge, A_ajuge, A_djuge, V_adiff, V_ddiff, a_tem, v_newmax;
+    bool plan;
+    int err_count;
+    int err;
+
+
+
+    // 初始化参数
+    q0 = stsetParam.q0;
+    q1 = stsetParam.q1;
+    v0 = stsetParam.v0;
+    v1 = stsetParam.v1;
+    V_max = stsetParam.V_max;
+    A_amax = stsetParam.A_max;
+    A_dmax = stsetParam.A_max;
+    J_amax = stsetParam.J_max;
+    J_dmax = stsetParam.J_max;
+    S_max = stsetParam.S_max;
+    plan = false;
+
+    Tsa = 0;
+    Tsd = 0;
+    Tja = 0;
+    Tjd = 0;
+    Ta = 0;
+    Td = 0;
+    Tv = 0;
+    err = 0;
+    err_count = 0;
+
+    // 判断速度
+    if ((V_max < v0) || (V_max < v1)) {
+        if (v0 - v1 > 0.0) {
+            V_max = v0;
+        }
+        else {
+            V_max = v1;
+        }
+    }
+    if (stsetParam.V_max == 0 || stsetParam.A_max == 0 || stsetParam.J_max == 0 || stsetParam.S_max == 0) {
+        err = Invalid_input_parameter;
+        return err;
+    }
+    // 判断位移
+    S_juge = 1 / 2 * (sqrt(4 * (1 / stsetParam.J_max) * abs(v1 - v0)) + stsetParam.J_max / stsetParam.S_max) * abs(v1 + v0);
+    if (abs(q1 - q0) < S_juge) {
+        err = The_displacement_is_too_small_to_plan;
+        return err;
+    }
+    int direction = (q1 > q0) ? 1.0 : -1.0;
+    v0 = direction * v0;
+    v1 = direction * v1;
+    q0 = direction * q0;
+    q1 = direction * q1;
+    // 中间参数计算
+    Tsa = J_amax / S_max;// 加加速度一阶导的持续时间
+    Tsd = J_dmax / S_max;// 加加速度一阶导的持续时间
+    Tja = A_amax / J_amax + Tsa;// 加速度的加速时间
+    Tjd = A_dmax / J_dmax + Tsd;// 加速度的加速时间
+    Ta = Tja + abs(V_max - v0) / A_amax;// 速度的加速时间
+    Td = Tjd + abs(V_max - v1) / A_dmax;// 速度的减速时间
+    Tv = abs(q1 - q0) / V_max - (Ta / 2) * (1 + v0 / V_max) - (Td / 2) * (1 + v1 / V_max);// 速度的匀速时间
+    T = Ta + Tv + Td;
+    // 标准判等式
+    A_ajuge = pow(J_amax, 2) / S_max;// 能不能达到j_max
+    A_djuge = pow(J_dmax, 2) / S_max;// 能不能达到j_max
+    V_adiff = pow(A_amax, 2) / J_amax + A_amax * J_amax / S_max;// 能不能达到a_max
+    V_ddiff = pow(A_dmax, 2) / J_dmax + A_dmax * J_dmax / S_max;// 能不能达到a_max
+
+    while (plan == false) {
+        // 单段规划
+        if (((V_max - v0) <= Zero) || ((V_max - v1) <= Zero) || (V_max <= Zero) || ((V_max - stsetParam.V_max) > Zero)) {
+            // 减速段
+            if ((v0 - v1) > Zero) {
+                J_amax = 0;
+                A_amax = 0;
+                V_max = v0;
+                if ((V_max - v1) < V_ddiff) {
+                    a_tem = (-pow(J_dmax, 2) + sqrt(pow(J_dmax, 4) + 4 * S_max * (V_max - v1) * J_dmax * S_max)) / (2 * S_max);
+                    if ((a_tem - stsetParam.A_max) > Zero) {
+                        err = Error_in_calculating_the_acceleration_for_the_single_deceleration_segment;
+                        return err;
+                    }
+                    A_dmax = a_tem;
+                }
+                if ((A_dmax - A_djuge) < Zero) {
+                    J_dmax = sqrt(A_dmax * S_max);
+                }
+                if (A_dmax == 0 || J_dmax == 0 || S_max == 0 || V_max == 0) {
+                    err = Denominator_is_zero;
+                    return err;
+                }
+                Tsa = 0;// 加加速度一阶导的持续时间
+                Tsd = J_dmax / S_max;// 加加速度一阶导的持续时间
+                Tja = 0;// 加速度的加速时间
+                Tjd = A_dmax / J_dmax + Tsd;// 加速度的加速时间
+                Ta = 0;// 速度的加速时间
+                Td = Tjd + abs(V_max - v1) / A_dmax;// 速度的减速时间
+                Tv = abs(q1 - q0) / V_max - (Ta / 2) * (1 + v0 / V_max) - (Td / 2) * (1 + v1 / V_max);// 速度的匀速时间
+                T = Ta + Tv + Td;
+                A_djuge = pow(A_dmax, 2) / S_max;// 能不能达到j_max
+                if (Tv < Zero) {
+                    Tv = 0;
+                    if (abs(v1 + v0) <= Zero) {
+                        err = Denominator_is_zero;
+                        return err;
+                    }
+                    Td = 2 * abs(q1 - q0) / abs(v1 + v0);
+                    Tjd = 0.5 * Td;
+                    if ((Td - Tjd) <= Zero) {
+                        err = Denominator_is_zero;
+                        return err;
+                    }
+                    a_tem = abs(V_max - v1) / (Td - Tjd);
+                    if ((a_tem - stsetParam.A_max) > Zero) {
+                        err = Error_in_calculating_the_acceleration_for_the_single_deceleration_segment;
+                        return err;
+                    }
+                    A_dmax = a_tem;
+                    if ((A_dmax - A_djuge) < Zero) {
+                        J_dmax = sqrt(A_dmax * S_max);
+                    }
+                    if (A_dmax == 0 || J_dmax == 0 || S_max == 0 || V_max == 0) {
+                        err = Denominator_is_zero;
+                        return err;
+                    }
+                    Tsd = J_dmax / S_max;// 加加速度一阶导的持续时间
+                    Td = Tjd + abs(V_max - v1) / A_dmax;// 速度的减速时间
+                    Tv = abs(q1 - q0) / V_max - (Ta / 2) * (1 + v0 / V_max) - (Td / 2) * (1 + v1 / V_max);// 速度的匀速时间
+                    T = Ta + Tv + Td;
+                }
+            }
+            // 加速段
+            if ((v0 - v1) < Zero) {
+                J_dmax = 0;
+                A_dmax = 0;
+                V_max = v1;
+                if ((V_max - v0) < V_adiff) {
+                    a_tem = (-pow(J_amax, 2) + sqrt(pow(J_amax, 4) + 4 * S_max * (V_max - v0) * J_amax * S_max)) / (2 * S_max);
+                    if ((a_tem - stsetParam.A_max) > Zero) {
+                        err = Error_in_calculating_the_acceleration_for_the_single_deceleration_segment;
+                        return err;
+                    }
+                    A_amax = a_tem;
+                }
+                if ((A_amax - A_ajuge) < Zero) {
+                    J_amax = sqrt(A_amax * S_max);
+                }
+                if (A_amax == 0 || J_amax == 0 || S_max == 0 || V_max == 0) {
+                    err = Denominator_is_zero;
+                    return err;
+                }
+                Tsa = J_amax / S_max;// 加加速度一阶导的持续时间
+                Tsd = 0;// 加加速度一阶导的持续时间
+                Tja = A_amax / J_amax + Tsa;// 加速度的加速时间
+                Tjd = 0;// 加速度的加速时间
+                Ta = Tja + abs(V_max - v0) / A_amax;// 速度的加速时间
+                Td = 0;// 速度的减速时间
+                Tv = abs(q1 - q0) / V_max - (Ta / 2) * (1 + v0 / V_max) - (Td / 2) * (1 + v1 / V_max);// 速度的匀速时间
+                T = Ta + Tv + Td;
+                A_ajuge = pow(J_amax, 2) / S_max;// 能不能达到j_max
+                if (Tv < Zero) {
+                    Tv = 0;
+                    if (abs(v1 + v0) <= Zero) {
+                        err = Denominator_is_zero;
+                        return err;
+                    }
+                    Ta = 2 * abs(q1 - q0) / abs(v1 + v0);
+                    Tja = 0.5 * Ta;
+                    if ((Ta - Tja) <= Zero) {
+                        err = Denominator_is_zero;
+                        return err;
+                    }
+                    a_tem = abs(V_max - v0) / (Ta - Tja);
+                    if ((a_tem - stsetParam.A_max) > Zero) {
+                        err = Error_in_calculating_the_acceleration_for_the_single_aeceleration_segment;
+                        return err;
+                    }
+                    A_amax = a_tem;
+                    if ((A_amax - A_ajuge) < Zero) {
+                        J_amax = sqrt(A_amax * S_max);
+                    }
+                    if (A_amax == 0 || J_amax == 0 || S_max == 0 || V_max == 0) {
+                        err = Denominator_is_zero;
+                        return err;
+                    }
+                    Tsa = J_amax / S_max;// 加加速度一阶导的持续时间
+                    Ta = Tja + abs(V_max - v0) / A_amax;// 速度的减速时间
+                    Tv = abs(q1 - q0) / V_max - (Ta / 2) * (1 + v0 / V_max) - (Td / 2) * (1 + v1 / V_max);// 速度的匀速时间
+                    T = Ta + Tv + Td;
+                }
+            }
+            plan = true;
+        }
+        else {
+            // 有加速段，减速段
+            if ((V_max - v0) < V_adiff) {
+                a_tem = (-pow(J_amax, 2) + sqrt(pow(J_amax, 4) + 4 * S_max * (V_max - v0) * J_amax * S_max)) / (2 * S_max);
+                if ((a_tem - stsetParam.A_max) > Zero) {
+                    err = Error_in_calculating_acceleration_in_the_aeceleration_section;
+                    return err;
+                }
+                A_amax = a_tem;
+            }
+            if ((A_amax - A_ajuge) < Zero) {
+                J_amax = sqrt(A_amax * S_max);
+            }
+            if ((V_max - v1) < V_ddiff) {
+                a_tem = (-pow(J_dmax, 2) + sqrt(pow(J_dmax, 4) + 4 * S_max * (V_max - v1) * J_dmax * S_max)) / (2 * S_max);
+                if ((a_tem - stsetParam.A_max) > Zero) {
+                    err = Error_in_calculating_acceleration_in_the_deceleration_section;
+                    return err;
+                }
+                A_dmax = a_tem;
+            }
+            if ((A_dmax - A_djuge) < Zero) {
+                J_dmax = sqrt(A_dmax * S_max);
+            }
+            if (V_max == 0 || A_amax == 0 || A_dmax == 0 || J_amax == 0 || J_dmax == 0 || S_max == 0) {
+                err = Invalid_input_parameter;
+                return err;
+            }
+            Tsa = J_amax / S_max;// 加加速度一阶导的持续时间
+            Tsd = J_dmax / S_max;// 加加速度一阶导的持续时间
+            Tja = A_amax / J_amax + Tsa;// 加速度的加速时间
+            Tjd = A_dmax / J_dmax + Tsd;// 加速度的加速时间
+            Ta = Tja + abs(V_max - v0) / A_amax;// 速度的加速时间
+            Td = Tjd + abs(V_max - v1) / A_dmax;// 速度的减速时间
+            Tv = abs(q1 - q0) / V_max - (Ta / 2) * (1 + v0 / V_max) - (Td / 2) * (1 + v1 / V_max);// 速度的匀速时间
+            T = Ta + Tv + Td;
+            A_ajuge = pow(J_amax, 2) / S_max;// 能不能达到j_max
+            A_djuge = pow(J_dmax, 2) / S_max;// 能不能达到j_max
+            V_adiff = pow(A_amax, 2) / J_amax + A_amax * J_amax / S_max;// 能不能达到a_max
+            V_ddiff = pow(A_dmax, 2) / J_dmax + A_dmax * J_dmax / S_max;// 能不能达到a_max
+            plan = true;
+            while (Tv < 0) {
+                v_newmax = 0.9 * V_max;
+                V_max = v_newmax;
+                Ta = Tja + abs(V_max - v0) / A_amax;// 速度的加速时间
+                Td = Tjd + abs(V_max - v1) / A_dmax;// 速度的减速时间
+                Tv = abs(q1 - q0) / V_max - (Ta / 2) * (1 + v0 / V_max) - (Td / 2) * (1 + v1 / V_max);// 速度的匀速时间
+                T = Ta + Tv + Td;
+                plan = false;
+                if ((V_max - v0) <= Zero || ((V_max - v1) <= Zero) || (V_max <= Zero)) {
+                    Tv = 0;
+                }
+            }
+            if (err_count > 2) {
+                err = Planning_error;
+                return err;
+            }
+            err_count = err_count + 1;
+        }
+    }
+    // 安全保护
+    if ((J_amax < 0) || ((J_amax - stsetParam.J_max) > 0) || (Tv < 0) || (J_dmax < 0) || ((J_dmax - stsetParam.J_max) > 0)
+        || (A_amax < 0) || ((A_amax - stsetParam.A_max) > 0) || (A_dmax < 0) || ((A_dmax - stsetParam.A_max) > 0)) {
+        err = Planning_error;
+        return err;
+    }
+
+    stActParam.q0 = q0;
+    stActParam.q1 = q1;
+    stActParam.v0 = v0;
+    stActParam.v1 = v1;
+    stActParam.V_max = V_max;
+    stActParam.S_max = S_max;
+    trackData.A_amax = A_amax;
+    trackData.A_dmax = A_dmax;
+    trackData.J_amax = J_amax;
+    trackData.J_dmax = J_dmax;
+    trackData.Tsa = Tsa;
+    trackData.Tsd = Tsd;
+    trackData.Tja = Tja;
+    trackData.Tjd = Tjd;
+    trackData.Ta = Ta;
+    trackData.Td = Td;
+    trackData.Tv = Tv;
+    trackData.T = T;
+    trackData.direction = direction;
+
+    return err;
+}
+int FifteenSeg_Inter(ST_PlanParams stActParam, ST_PlanData trackData, double t, ST_InterParams& stData) {
+    double q0, q1, v0, v1, V_max, A_amax, A_dmax, J_amax, J_dmax, S_max;
+    double Tsa, Tsd, Tja, Tjd, Ta, Td, Tv, T;
+    double  P, V, A, J, S;
+    int direction;
+    int err;
+
+    q0 = stActParam.q0;
+    q1 = stActParam.q1;
+    v0 = stActParam.v0;
+    v1 = stActParam.v1;
+    V_max = stActParam.V_max;
+    S_max = stActParam.S_max;
+    A_amax = trackData.A_amax;
+    A_dmax = trackData.A_dmax;
+    J_amax = trackData.J_amax;
+    J_dmax = trackData.J_dmax;
+    Tsa = trackData.Tsa;
+    Tsd = trackData.Tsd;
+    Tja = trackData.Tja;
+    Tjd = trackData.Tjd;
+    Ta = trackData.Ta;
+    Td = trackData.Td;
+    Tv = trackData.Tv;
+    T = trackData.T;
+    direction = trackData.direction;
+    err = 0;
+
+    P = 0;
+    V = 0;
+    A = 0;
+    J = 0;
+    S = 0;
+
+    // 调整方向
+    //double direction = (q1 > q0) ? 1.0 : -1.0;
+    //v0 = direction * v0;
+    //v1 = direction * v1;
+    //V_max = direction * V_max;
+    //S_max = direction * S_max;
+    //J_amax = direction * J_amax;
+    //J_dmax = direction * J_dmax;
+    //A_amax = direction * A_amax;
+    //A_dmax = direction * A_dmax;
+
+    if ((0 <= t) && (t <= Tsa)) {
+        // 加速段 - 第一部分
+        S = S_max;
+        J = S_max * t;
+        A = 0.5 * S_max * pow(t, 2);
+        V = (1.0 / 6.0) * S_max * pow(t, 3) + v0;
+        P = (1.0 / 24.0) * S_max * pow(t, 4) + v0 * t + q0;
+    }
+    else if ((Tsa < t) && (t <= (Tja - Tsa))) {
+        S = 0;
+        J = J_amax;
+        A = J_amax * t - 0.5 * J_amax * Tsa;
+        V = (J_amax / 6.0) * pow(Tsa, 2) + 0.5 * J_amax * t * (t - Tsa) + v0;
+        P = (J_amax / 24.0) * (2 * t - Tsa) * (2 * t * (t - Tsa) + pow(Tsa, 2)) + v0 * t + q0;
+    }
+    else if (((Tja - Tsa) < t) && (t <= Tja)) {
+        S = -S_max;
+        J = -S_max * (t - Tja);
+        A = -0.5 * S_max * pow(t - Tja, 2) + A_amax;
+        double temp = t - Tja + Tsa;
+        V = (S_max / 6.0) * (7 * pow(Tsa, 3) - 9 * pow(Tsa, 2) * (t + Tsa) +
+            3 * Tsa * pow(t + Tsa, 2) - pow(temp, 3)) + v0;
+        P = (S_max / 24.0) * (-15 * pow(Tsa, 4) + 28 * pow(Tsa, 3) * (t + Tsa) -
+            18 * pow(Tsa, 2) * pow(t + Tsa, 2) + 4 * Tsa * pow(t + Tsa, 3) -
+            pow(temp, 4)) + v0 * t + q0;
+    }
+    else if ((Tja < t) && (t <= (Ta - Tja))) {
+        S = 0;
+        J = 0;
+        A = A_amax;
+        V = 0.5 * A_amax * (2 * t - Tja) + v0;
+        P = (A_amax / 12.0) * (6 * pow(t, 2) - 6 * t * Tja + 2 * pow(Tja, 2) - Tja * Tsa + pow(Tsa, 2)) + v0 * t + q0;
+    }
+    else if (((Ta - Tja) < t) && (t <= (Ta - Tja + Tsa))) {
+        S = -S_max;
+        J = -S_max * (t - Ta + Tja);
+        A = A_amax - 0.5 * S_max * pow(t - Ta + Tja, 2);
+        double temp = t - Ta + Tja;
+        V = -(S_max / 6.0) * pow(temp, 3) + 0.5 * A_amax * (2 * t - Tja) + v0;
+        P = -(S_max / 24.0) * pow(temp, 4) +
+            (A_amax / 12.0) * (6 * pow(t, 2) - 6 * t * Tja + 2 * pow(Tja, 2) - Tja * Tsa + pow(Tsa, 2)) + v0 * t + q0;
+    }
+    else if (((Ta - Tja + Tsa) < t) && (t <= (Ta - Tsa))) {
+        S = 0;
+        J = -J_amax;
+        A = -0.5 * J_amax * (2 * t - 2 * Ta + Tsa);
+        V = -(J_amax / 6.0) * (3 * pow(t - Ta, 2) - 6 * Ta * Tja + 6 * pow(Tja, 2) +
+            3 * (t + Ta - 2 * Tja) * Tsa + pow(Tsa, 2)) + v0;
+        P = -(J_amax / 24.0) * (4 * pow(t - Ta, 3) - 12 * (2 * t - Ta) * Ta * Tja +
+            12 * (2 * t - Ta) * pow(Tja, 2) + 6 * (pow(t, 2) + 2 * t * (Ta - 2 * Tja) - Ta * (Ta - 2 * Tja)) * Tsa +
+            4 * (t - Ta) * pow(Tsa, 2) + pow(Tsa, 3)) + v0 * t + q0;
+    }
+    else if (((Ta - Tsa) < t) && (t <= Ta)) {
+        S = S_max;
+        J = S_max * (t - Ta);
+        A = 0.5 * S_max * pow(t - Ta, 2);
+        V = (S_max / 6.0) * pow(t - Ta, 3) + A_amax * (Ta - Tja) + v0;
+        P = (S_max / 24.0) * pow(t - Ta, 4) +
+            0.5 * A_amax * (2 * t - Ta) * (Ta - Tja) + v0 * t + q0;
+    }
+    else if ((Ta < t) && (t <= (Ta + Tv))) {
+        // 恒速段
+        S = 0;
+        J = 0;
+        A = 0;
+        V = V_max;
+        P = 0.5 * (V_max - v0) * (2 * t - Ta) + v0 * t + q0;
+    }
+    else if (((Ta + Tv) < t) && (t <= (Ta + Tv + Tsd))) {
+        // 减速段 - 第一部分
+        S = -S_max;
+        J = S_max * ((T - t) - Td);
+        A = -0.5 * S_max * pow((T - t) - Td, 2);
+        V = (S_max / 6.0) * pow((T - t) - Td, 3) + A_dmax * (Td - Tjd) + v1;
+        P = -(S_max / 24.0) * pow((T - t) - Td, 4) - 0.5 * A_dmax * (2 * (T - t) - Td) * (Td - Tjd) - v1 * (T - t) + q1;
+    }
+    else if (((Ta + Tv + Tsd) < t) && (t <= (Ta + Tv + Tjd - Tsd))) {
+        S = 0;
+        J = -J_dmax;
+        A = 0.5 * J_dmax * (2 * (T - t) - 2 * Td + Tsd);
+        V = -(J_dmax / 6.0) * (3 * pow((T - t) - Td, 2) - 6 * Td * Tjd + 6 * pow(Tjd, 2) +
+            3 * ((T - t) + Td - 2 * Tjd) * Tsd + pow(Tsd, 2)) + v1;
+        P = (J_dmax / 24.0) * (4 * pow((T - t) - Td, 3) - 12 * (2 * (T - t) - Td) * Td * Tjd +
+            12 * (2 * (T - t) - Td) * pow(Tjd, 2) + 6 * (pow(T - t, 2) + 2 * (T - t) * (Td - 2 * Tjd) - Td * (Td - 2 * Tjd)) * Tsd +
+            4 * ((T - t) - Td) * pow(Tsd, 2) + pow(Tsd, 3)) - v1 * (T - t) + q1;
+    }
+    else if (((Ta + Tv + Tjd - Tsd) < t) && (t <= (Ta + Tv + Tjd))) {
+        S = S_max;
+        J = -S_max * ((T - t) - Td + Tjd);
+        A = -A_dmax + 0.5 * S_max * pow((T - t) - Td + Tjd, 2);
+        double temp = (T - t) - Td + Tjd;
+        V = -(S_max / 6.0) * pow(temp, 3) + 0.5 * A_dmax * (2 * (T - t) - Tjd) + v1;
+        P = (S_max / 24.0) * pow(temp, 4) -
+            (A_dmax / 12.0) * (6 * pow(T - t, 2) - 6 * (T - t) * Tjd + 2 * pow(Tjd, 2) - Tjd * Tsd + pow(Tsd, 2)) -
+            v1 * (T - t) + q1;
+    }
+    else if (((Ta + Tv + Tjd) < t) && (t <= (T - Tjd))) {
+        S = 0;
+        J = 0;
+        A = -A_dmax;
+        V = 0.5 * A_dmax * (2 * (T - t) - Tjd) + v1;
+        P = -(A_dmax / 12.0) * (6 * pow(T - t, 2) - 6 * (T - t) * Tjd + 2 * pow(Tjd, 2) - Tjd * Tsd + pow(Tsd, 2)) -
+            v1 * (T - t) + q1;
+    }
+    else if (((T - Tjd) < t) && (t <= (T - Tjd + Tsd))) {
+        S = S_max;
+        J = -S_max * ((T - t) - Tjd);
+        A = 0.5 * S_max * pow((T - t) - Tjd, 2) - A_dmax;
+        double temp1 = (T - t) + Tsd;
+        double temp2 = (T - t) - Tjd + Tsd;
+        V = (S_max / 6.0) * (7 * pow(Tsd, 3) - 9 * pow(Tsd, 2) * temp1 +
+            3 * Tsd * pow(temp1, 2) - pow(temp2, 3)) + v1;
+        P = -(S_max / 24.0) * (-15 * pow(Tsd, 4) + 28 * pow(Tsd, 3) * temp1 -
+            18 * pow(Tsd, 2) * pow(temp1, 2) + 4 * Tsd * pow(temp1, 3) - pow(temp2, 4)) -
+            v1 * (T - t) + q1;
+    }
+    else if (((T - Tjd + Tsd) < t) && (t <= (T - Tsd))) {
+        S = 0;
+        J = J_dmax;
+        A = -J_dmax * (T - t) + 0.5 * J_dmax * Tsd;
+        V = (J_dmax / 6.0) * pow(Tsd, 2) + 0.5 * J_dmax * (T - t) * ((T - t) - Tsd) + v1;
+        P = -(J_dmax / 24.0) * (2 * (T - t) - Tsd) * (2 * (T - t) * ((T - t) - Tsd) + pow(Tsd, 2)) -
+            v1 * (T - t) + q1;
+    }
+    else if (((T - Tsd) < t) && (t <= T)) {
+        S = -S_max;
+        J = S_max * (T - t);
+        A = -0.5 * S_max * pow(T - t, 2);
+        V = (S_max / 6.0) * pow(T - t, 3) + v1;
+        P = -(S_max / 24.0) * pow(T - t, 4) - v1 * (T - t) + q1;
+    }
+
+    stData.S = direction * S;
+    stData.J = direction * J;
+    stData.A = direction * A;
+    stData.V = direction * V;
+    stData.P = direction * P;
+
+    return err;
 }

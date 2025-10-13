@@ -5,61 +5,86 @@
 #include <iostream>
 #include <fstream>
 #include<math.h>
-typedef std::vector<double> v_double;
-typedef std::vector<double> v_int;
+
+#define Zero 0
+#define MAX_PATH_NUM_ALLOWED 100000
+#define ITERATIVESTEPS 0.00001
 
 
-//运动过渡帧
-struct ST_MotionTransitionFrame
-{
-    double pos;   
-    double vel;  
+#define ERROR_CALCULATION_01 1
+#define ERROR_CALCULATION_02 2
+#define ERROR_CALCULATION_03 3
+#define ERROR_DISPLACEMENT_TOO_SMALL 4
+#define ERROR_INVALID_PARAMETERS 5
+#define The_displacement_is_too_small_to_plan 6
+#define Invalid_input_parameter 7
+#define Error_in_calculating_the_acceleration_for_the_single_deceleration_segment 8
+#define Error_in_calculating_the_acceleration_for_the_single_aeceleration_segment 9
+#define Error_in_calculating_acceleration_in_the_aeceleration_section 10
+#define Error_in_calculating_acceleration_in_the_deceleration_section 11
+#define Planning_error 12
+#define Denominator_is_zero 1111
 
-    ST_MotionTransitionFrame()
-        : pos(0.0), vel(0.0){}
+struct ST_PlanParams {
+	double q0;      // 起始位置
+	double q1;      // 目标位置  
+	double v0;      // 起始速度
+	double v1;      // 结束速度
+	double V_max;    // 最大速度
+	double A_max;    // 最大加速度
+	double J_max;    // 最大加加速度
+	double S_max;    // 最大跳度
 
+	// 相等运算符：逐个成员比较
+	bool operator==(const ST_PlanParams& other) const
+	{
+		return 
+			//初始位置改变不视为运动参数发生了变化
+			//q0 == other.q0 &&
+			fabs(q1 - other.q1) < ITERATIVESTEPS &&
+			fabs(v0 - other.v0) < ITERATIVESTEPS &&
+			fabs(v1 - other.v1) < ITERATIVESTEPS &&
+			fabs(V_max - other.V_max) < ITERATIVESTEPS &&
+			fabs(A_max - other.A_max) < ITERATIVESTEPS &&
+			fabs(J_max - other.J_max) < ITERATIVESTEPS &&
+			fabs(S_max - other.S_max) < ITERATIVESTEPS;
+	}
 
-    ST_MotionTransitionFrame(double p, double v)
-        : pos(p), vel(v){}
+	bool operator!=(const ST_PlanParams& other) const
+	{
+		return 
+			fabs(q1 - other.q1) > ITERATIVESTEPS ||
+			fabs(v0 - other.v0) > ITERATIVESTEPS ||
+			fabs(v1 - other.v1) > ITERATIVESTEPS ||
+			fabs(V_max - other.V_max) > ITERATIVESTEPS ||
+			fabs(A_max - other.A_max) > ITERATIVESTEPS ||
+			fabs(J_max - other.J_max) > ITERATIVESTEPS ||
+			fabs(S_max - other.S_max) > ITERATIVESTEPS;
+	}
+
 };
 
-struct ST_MotionFrame
-{
-    double pos;   
-    double vel;  
-    double acc;  
-    double jerk;  
+struct ST_PlanData {
 
-    ST_MotionFrame()
-        : pos(0.0), vel(0.0),acc(0.0),jerk(0.0){}
+	double Ta;      // 加速时间
+	double Tv;      // 匀速时间
+	double Td;      // 减速时间
+	double Tsa;
+	double Tsd;
+	double Tja;
+	double Tjd;
+	double T;       // 总时间
 
-
-    ST_MotionFrame(double p, double v,double a,double j)
-        : pos(p), vel(v),acc(a),jerk(j){}
+	double A_amax;
+	double A_dmax;
+	double J_amax;
+	double J_dmax;
+	int direction;
 };
-
-//运动约束
-struct ST_KinematicLimit
-{
-    double Vel;   
-    double A_acc_max;  
-    double J_acc_max;  
-    double A_dec_max;  
-    double J_dec_max;  
-};
-
-enum EN_Para
-{
-    en_t1 = 0, 
-    en_t2, 
-    en_t3, 
-    en_t4, 
-    en_t5,
-    en_t6,
-    en_t7,
-    en_V_s,
-    en_A_acc_max = 11,
-    en_J_acc_max, 
-    en_A_dec_max, 
-    en_J_dec_max, 
+struct ST_InterParams {
+	double P; // 位置
+	double V; // 速度 
+	double A; // 加速度
+	double J; // 加加速度
+	double S; // 跳度
 };

@@ -17,7 +17,7 @@ extern "C" {
 #endif
 
 #include <kern/kern.h>
-#include "soem/soem.h"
+#include "soem.h"
 #include "nicdrv.h"
 
 int oshw_mac_init(const uint8_t *mac_address);
