@@ -67,7 +67,11 @@ int EtherCATMaster::InitRT_Thread()
     {
       if(m_bEtherCAT_RT)
       {
-
+        m_bInOP = true;
+        ecx_send_processdata(&m_ctx);
+        m_nWkc = ecx_receive_processdata(&m_ctx,EC_TIMEOUTRET);
+        if(m_expectedWKC != m_nWkc)m_bInOP = false;
+        ecx_statecheck(&m_ctx,0, EC_STATE_OPERATIONAL, 50000);
       }
       osal_monotonic_sleep(&ti_Sleep);
     }
