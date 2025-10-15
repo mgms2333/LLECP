@@ -8,10 +8,14 @@
 #include"EtherCATDef.h"
 #include <thread>
 
+#define SLAVEID 2
+#define EC_TIMEOUTMON 500
+
 class EtherCATMaster
 {
 protected:
-    static ecx_contextt ctx;
+    ecx_contextt m_ctx;
+    
     
     uint8_t m_nMasterIndex;
     //ethercat master param
@@ -40,7 +44,17 @@ protected:
     int m_nRxPDOSize;//slave recv
     int m_nTxPDOSize;//slave send
     uint8_t  m_PDOmap[MAX_PDO_SIZE];
+    ec_groupt*  m_p_ECTgroup;
+    uint8 m_currentgroup = 0;
+    uint16 m_wkc = 0;
+    uint16 m_expectedWKC = 0;
+    boolean m_bInOP = true;
+    int m_ec_slavecount;
+    ec_slavet m_ec_slave[EC_MAXSLAVE];
 
+
+    //SLAVE
+    std::vector<SlaveBase*> m_v_slave;
 public:
     EtherCATMaster(uint8_t nMasterIndex);
     ~EtherCATMaster();
@@ -53,8 +67,12 @@ protected:
     int CreateRT_Thread(std::thread* th,void (EtherCATMaster::*func)());
     void EtherCAT_RT();
     void EtherCAT_RT_Check();
+    int InitRT_Thread();
     bool m_bEtherCAT_RT;
     bool m_bEtherCAT_RT_Check;
     timespec ti_Sleep;
+    //SOEM
+    int ScanSlave();
+    int InitSlave();
 };
 #endif // ETHERCATMASTER_H

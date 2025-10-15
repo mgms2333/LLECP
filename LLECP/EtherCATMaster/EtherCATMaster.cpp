@@ -7,7 +7,7 @@ EtherCATMaster::EtherCATMaster(uint8_t nMasterIndex)
     m_nShitTime = 0;
     m_fCycle = 1.0;
     m_bIsSimulation;
-    m_sNetWork = "enp2s0";
+    m_sNetWork = "enp1s0";
     ti_Sleep.tv_sec = 0;
     ti_Sleep.tv_nsec = m_fCycle*1000000;
 
@@ -21,29 +21,27 @@ EtherCATMaster::~EtherCATMaster()
 int EtherCATMaster::CreateRT_Thread(std::thread* th,void (EtherCATMaster::*func)())
 {
         
-        th = new std::thread(func, this);
-        // 获取 pthread 原生句柄
-        pthread_t native = th->native_handle();
-        // 设置调度策略与优先级
-        sched_param sch_params;
-        sch_params.sched_priority = 1;   // 优先级范围通常 1~99（越高越实时）
-        int policy = SCHED_FIFO;          // 实时调度策略 FIFO
-        if (pthread_setschedparam(native, policy, &sch_params)) 
-        {
-            printf("无法设置实时优先级需要root权限\n");
-        }
-        th->detach();  
+  th = new std::thread(func, this);
+  // 获取 pthread 原生句柄
+  pthread_t native = th->native_handle();
+  // 设置调度策略与优先级
+  sched_param sch_params;
+  sch_params.sched_priority = 1;   // 优先级范围通常 1~99（越高越实时）
+  int policy = SCHED_FIFO;          // 实时调度策略 FIFO
+  if (pthread_setschedparam(native, policy, &sch_params)) 
+  {
+      printf("无法设置实时优先级需要root权限\n");
+  }
+  th->detach();  
+  return 0;
 }
 int EtherCATMaster::StartMaster()
 {
-    m_bEtherCAT_RT = true;
-    m_bEtherCAT_RT_Check = true;
-      /* create process data thread */
-    CreateRT_Thread(&thEtherCAT_RT,&EtherCATMaster::EtherCAT_RT);
-      /* create thread to handle slave error handling in OP */
-    CreateRT_Thread(&thEtherCAT_RT_Check,&EtherCATMaster::EtherCAT_RT_Check);
+    InitRT_Thread();
       /* bringup network */
       //ecatbringup(m_sNetWork.c_str());
+    ScanSlave();
+    InitSlave();
     return 0;
 }
 int EtherCATMaster::CloseMaster()
@@ -51,13 +49,25 @@ int EtherCATMaster::CloseMaster()
   return 0;
 }
 
+int EtherCATMaster::InitRT_Thread()
+{
+    m_bEtherCAT_RT = true;
+    m_bEtherCAT_RT_Check = true;
+      /* create process data thread */
+    CreateRT_Thread(&thEtherCAT_RT,&EtherCATMaster::EtherCAT_RT);
+      /* create thread to handle slave error handling in OP */
+    CreateRT_Thread(&thEtherCAT_RT_Check,&EtherCATMaster::EtherCAT_RT_Check);
+    return 0;
+}
+
  void EtherCATMaster::EtherCAT_RT()
  {
+    printf("RunEtherCAT_RT start\n");
     while (true)
     {
       if(m_bEtherCAT_RT)
       {
-        printf("RunEtherCAT_RT\n");
+
       }
       osal_monotonic_sleep(&ti_Sleep);
     }
@@ -66,13 +76,203 @@ int EtherCATMaster::CloseMaster()
  }
  void EtherCATMaster::EtherCAT_RT_Check()
  {
+  printf("EtherCAT_RT_Check start\n");
     while (true)
     {
       if(m_bEtherCAT_RT_Check)
       {
-        printf("RunEtherCAT_RT\n");
+        if( m_bInOP && ((m_wkc < m_expectedWKC) || m_ctx.grouplist[m_currentgroup].docheckstate))
+        {
+            int slave;
+            /* one ore more slaves are not responding */
+            m_ctx.grouplist[m_currentgroup].docheckstate = FALSE;
+            ecx_readstate(&m_ctx);
+            for (slave = 1; slave <= m_ec_slavecount; slave++)
+            {
+                if ((m_ec_slave[slave].group == m_currentgroup) && (m_ec_slave[slave].state != EC_STATE_OPERATIONAL))
+                {
+                  m_ctx.grouplist[m_currentgroup].docheckstate = TRUE;
+                  if (m_ec_slave[slave].state == (EC_STATE_SAFE_OP + EC_STATE_ERROR))
+                  {
+                      printf("ERROR : slave %d is in SAFE_OP + ERROR, attempting ack.\n", slave);
+                      m_ec_slave[slave].state = (EC_STATE_SAFE_OP + EC_STATE_ACK);
+                      ecx_writestate(&m_ctx,slave);
+                  }
+                  else if(m_ec_slave[slave].state == EC_STATE_SAFE_OP)
+                  {
+                      printf("WARNING : slave %d is in SAFE_OP, change to OPERATIONAL.\n", slave);
+                      m_ec_slave[slave].state = EC_STATE_OPERATIONAL;
+                      ecx_writestate(&m_ctx,slave);
+                  }
+                  else if(m_ec_slave[slave].state > EC_STATE_NONE)
+                  {
+                      if (ecx_reconfig_slave(&m_ctx,slave, EC_TIMEOUTMON))
+                      {
+                        m_ec_slave[slave].islost = FALSE;
+                        printf("MESSAGE : slave %d reconfigured\n",slave);
+                      }
+                  }
+                  else if(!m_ec_slave[slave].islost)
+                  {
+                      /* re-check state */
+                      ecx_statecheck(&m_ctx,slave, EC_STATE_OPERATIONAL, EC_TIMEOUTRET);
+                      if (m_ec_slave[slave].state == EC_STATE_NONE)
+                      {
+                        m_ec_slave[slave].islost = TRUE;
+                        printf("ERROR : slave %d lost\n",slave);
+                      }
+                  }
+                }
+                if (m_ec_slave[slave].islost)
+                {
+                  if(m_ec_slave[slave].state == EC_STATE_NONE)
+                  {
+                      if (ecx_recover_slave(&m_ctx,slave, EC_TIMEOUTMON))
+                      {
+                        m_ec_slave[slave].islost = FALSE;
+                        printf("MESSAGE : slave %d recovered\n",slave);
+                      }
+                  }
+                  else
+                  {
+                      m_ec_slave[slave].islost = FALSE;
+                      printf("MESSAGE : slave %d found\n",slave);
+                  }
+                }
+            }
+            // if(!m_ctx.grouplist[m_currentgroup].docheckstate)
+            //     printf("OK : all slaves resumed OPERATIONAL.\n");
+        }
       }
       osal_monotonic_sleep(&ti_Sleep);
     }
     return; 
  }
+
+ int EtherCATMaster::ScanSlave()
+ {
+   int cnt, i, j, nSM;
+   uint16 ssigen;
+
+   printf("Starting slaveinfo\n");
+
+   /* initialise SOEM, bind socket to ifname */
+   if (ecx_init(&m_ctx, m_sNetWork.c_str()))
+   {
+      printf("ecx_init on %s succeeded.\n", m_sNetWork.c_str());
+
+      /* find and auto-config slaves */
+      if (ecx_config_init(&m_ctx) > 0)
+      {
+         m_p_ECTgroup = &m_ctx.grouplist[0];
+
+         ecx_config_map_group(&m_ctx, m_PDOmap, 0);
+
+         ecx_configdc(&m_ctx);
+         while (m_ctx.ecaterror)
+            printf("%s", ecx_elist2string(&m_ctx));
+         printf("%d slaves found and configured.\n", m_ctx.slavecount);
+         m_expectedWKC = (m_p_ECTgroup->outputsWKC * 2) + m_p_ECTgroup->inputsWKC;
+         printf("Calculated workcounter %d\n", m_expectedWKC);
+         /* wait for all slaves to reach SAFE_OP state */
+         ecx_statecheck(&m_ctx, 0, EC_STATE_SAFE_OP, EC_TIMEOUTSTATE * 3);
+         if (m_ctx.slavelist[0].state != EC_STATE_SAFE_OP)
+         {
+            printf("Not all slaves reached safe operational state.\n");
+            ecx_readstate(&m_ctx);
+            for (i = 1; i <= m_ctx.slavecount; i++)
+            {
+               if (m_ctx.slavelist[i].state != EC_STATE_SAFE_OP)
+               {
+                  printf("Slave %d State=%2x StatusCode=%4x : %s\n",
+                         i, m_ctx.slavelist[i].state, m_ctx.slavelist[i].ALstatuscode, ec_ALstatuscode2string(m_ctx.slavelist[i].ALstatuscode));
+               }
+            }
+         }
+
+         ecx_readstate(&m_ctx);
+         for (cnt = 1; cnt <= m_ctx.slavecount; cnt++)
+         {
+            printf("\nSlave:%d\n Name:%s\n Output size: %dbits\n Input size: %dbits\n State: %d\n Delay: %d[ns]\n Has DC: %d\n",
+                   cnt, m_ctx.slavelist[cnt].name, m_ctx.slavelist[cnt].Obits, m_ctx.slavelist[cnt].Ibits,
+                   m_ctx.slavelist[cnt].state, m_ctx.slavelist[cnt].pdelay, m_ctx.slavelist[cnt].hasdc);
+            if (m_ctx.slavelist[cnt].hasdc) printf(" DCParentport:%d\n", m_ctx.slavelist[cnt].parentport);
+            printf(" Activeports:%d.%d.%d.%d\n", (m_ctx.slavelist[cnt].activeports & 0x01) > 0,
+                   (m_ctx.slavelist[cnt].activeports & 0x02) > 0,
+                   (m_ctx.slavelist[cnt].activeports & 0x04) > 0,
+                   (m_ctx.slavelist[cnt].activeports & 0x08) > 0);
+            printf(" Configured address: %4.4x\n", m_ctx.slavelist[cnt].configadr);
+            printf(" Man: %8.8x ID: %8.8x Rev: %8.8x\n", (int)m_ctx.slavelist[cnt].eep_man, (int)m_ctx.slavelist[cnt].eep_id, (int)m_ctx.slavelist[cnt].eep_rev);
+            for (nSM = 0; nSM < EC_MAXSM; nSM++)
+            {
+               if (m_ctx.slavelist[cnt].SM[nSM].StartAddr > 0)
+                  printf(" SM%1d A:%4.4x L:%4d F:%8.8x Type:%d\n", nSM, etohs(m_ctx.slavelist[cnt].SM[nSM].StartAddr), etohs(m_ctx.slavelist[cnt].SM[nSM].SMlength),
+                         etohl(m_ctx.slavelist[cnt].SM[nSM].SMflags), m_ctx.slavelist[cnt].SMtype[nSM]);
+            }
+            for (j = 0; j < m_ctx.slavelist[cnt].FMMUunused; j++)
+            {
+               printf(" FMMU%1d Ls:%8.8x Ll:%4d Lsb:%d Leb:%d Ps:%4.4x Psb:%d Ty:%2.2x Act:%2.2x\n", j,
+                      etohl(m_ctx.slavelist[cnt].FMMU[j].LogStart), etohs(m_ctx.slavelist[cnt].FMMU[j].LogLength), m_ctx.slavelist[cnt].FMMU[j].LogStartbit,
+                      m_ctx.slavelist[cnt].FMMU[j].LogEndbit, etohs(m_ctx.slavelist[cnt].FMMU[j].PhysStart), m_ctx.slavelist[cnt].FMMU[j].PhysStartBit,
+                      m_ctx.slavelist[cnt].FMMU[j].FMMUtype, m_ctx.slavelist[cnt].FMMU[j].FMMUactive);
+            }
+            printf(" FMMUfunc 0:%d 1:%d 2:%d 3:%d\n",
+                   m_ctx.slavelist[cnt].FMMU0func, m_ctx.slavelist[cnt].FMMU1func, m_ctx.slavelist[cnt].FMMU2func, m_ctx.slavelist[cnt].FMMU3func);
+            printf(" MBX length wr: %d rd: %d MBX protocols : %2.2x\n", m_ctx.slavelist[cnt].mbx_l, m_ctx.slavelist[cnt].mbx_rl, m_ctx.slavelist[cnt].mbx_proto);
+            ssigen = ecx_siifind(&m_ctx, cnt, ECT_SII_GENERAL);
+            /* SII general section */
+            if (ssigen)
+            {
+               m_ctx.slavelist[cnt].CoEdetails = ecx_siigetbyte(&m_ctx, cnt, ssigen + 0x07);
+               m_ctx.slavelist[cnt].FoEdetails = ecx_siigetbyte(&m_ctx, cnt, ssigen + 0x08);
+               m_ctx.slavelist[cnt].EoEdetails = ecx_siigetbyte(&m_ctx, cnt, ssigen + 0x09);
+               m_ctx.slavelist[cnt].SoEdetails = ecx_siigetbyte(&m_ctx, cnt, ssigen + 0x0a);
+               if ((ecx_siigetbyte(&m_ctx, cnt, ssigen + 0x0d) & 0x02) > 0)
+               {
+                  m_ctx.slavelist[cnt].blockLRW = 1;
+                  m_ctx.slavelist[0].blockLRW++;
+               }
+               m_ctx.slavelist[cnt].Ebuscurrent = ecx_siigetbyte(&m_ctx, cnt, ssigen + 0x0e);
+               m_ctx.slavelist[cnt].Ebuscurrent += ecx_siigetbyte(&m_ctx, cnt, ssigen + 0x0f) << 8;
+               m_ctx.slavelist[0].Ebuscurrent += m_ctx.slavelist[cnt].Ebuscurrent;
+            }
+            printf(" CoE details: %2.2x FoE details: %2.2x EoE details: %2.2x SoE details: %2.2x\n",
+                   m_ctx.slavelist[cnt].CoEdetails, m_ctx.slavelist[cnt].FoEdetails, m_ctx.slavelist[cnt].EoEdetails, m_ctx.slavelist[cnt].SoEdetails);
+            printf(" Ebus current: %d[mA]\n only LRD/LWR:%d\n",
+                   m_ctx.slavelist[cnt].Ebuscurrent, m_ctx.slavelist[cnt].blockLRW);
+         }
+      }
+      else
+      {
+         printf("No slaves found!\n");
+      }
+      printf("End slaveinfo, close socket\n");
+      /* stop SOEM, close socket */
+      ecx_close(&m_ctx);
+   }
+   else
+   {
+      printf("No socket connection on %s\nExcecute as root\n", m_sNetWork);
+   }
+ }
+
+int EtherCATMaster::InitSlave()
+{
+  SlaveBase* pSlave;
+  for (size_t i = 1; i <= m_ctx.slavecount; i++)
+  {
+    switch ((int)m_ctx.slavelist[i].eep_id)
+    {
+      case 27:
+          m_v_slave.clear();
+          pSlave = new NETX_50_RE_ECS();
+          pSlave->InitPDOmap(&m_ctx.slavelist[i]);
+          m_v_slave.push_back(pSlave);
+          break;
+      
+      default:
+          break;
+    }
+  }
+  return 0;
+}

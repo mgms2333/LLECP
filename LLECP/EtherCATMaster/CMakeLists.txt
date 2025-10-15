@@ -4,6 +4,10 @@ link_directories(/opt/etherlab/lib)
 # 创建一个静态库（也可用 SHARED 变动态库）
 add_library(EtherCATMaster
     EtherCATMaster.cpp
+    slave/SlaveBase.cpp
+    slave/NETX_50_RE_ECS.cpp
+    slave/EL1088.cpp
+    slave/EL2088.cpp
 )
 
 # 包含头文件目录（提供给主程序使用）
