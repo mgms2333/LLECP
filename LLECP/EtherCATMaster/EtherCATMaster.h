@@ -49,8 +49,6 @@ protected:
     uint16 m_wkc = 0;
     uint16 m_expectedWKC = 0;
     boolean m_bInOP = true;
-    int m_ec_slavecount;
-    ec_slavet m_ec_slave[EC_MAXSLAVE];
 
 
     //SLAVE

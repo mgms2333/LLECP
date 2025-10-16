@@ -65,13 +65,20 @@ int EtherCATMaster::InitRT_Thread()
     printf("RunEtherCAT_RT start\n");
     while (true)
     {
-      if(m_bEtherCAT_RT)
+      if(m_bEtherCAT_RT && m_ctx.slavecount!=0)
       {
         m_bInOP = true;
-        ecx_send_processdata(&m_ctx);
-        m_nWkc = ecx_receive_processdata(&m_ctx,EC_TIMEOUTRET);
-        if(m_expectedWKC != m_nWkc)m_bInOP = false;
-        ecx_statecheck(&m_ctx,0, EC_STATE_OPERATIONAL, 50000);
+        if (!m_bIsSimulation)
+        {
+              // 发送总线数据
+            #ifdef PDO_OVERLAB
+                ec_send_overlap_processdata();  //重叠模式发送数据
+            #else
+                ecx_send_processdata(&m_ctx);
+            #endif 
+            // 接收总线数据
+            m_wkc = ecx_receive_processdata(&m_ctx,EC_TIMEOUTRET);
+        }
       }
       osal_monotonic_sleep(&ti_Sleep);
     }
@@ -85,68 +92,7 @@ int EtherCATMaster::InitRT_Thread()
     {
       if(m_bEtherCAT_RT_Check)
       {
-        if( m_bInOP && ((m_wkc < m_expectedWKC) || m_ctx.grouplist[m_currentgroup].docheckstate))
-        {
-            int slave;
-            /* one ore more slaves are not responding */
-            m_ctx.grouplist[m_currentgroup].docheckstate = FALSE;
-            ecx_readstate(&m_ctx);
-            for (slave = 1; slave <= m_ec_slavecount; slave++)
-            {
-                if ((m_ec_slave[slave].group == m_currentgroup) && (m_ec_slave[slave].state != EC_STATE_OPERATIONAL))
-                {
-                  m_ctx.grouplist[m_currentgroup].docheckstate = TRUE;
-                  if (m_ec_slave[slave].state == (EC_STATE_SAFE_OP + EC_STATE_ERROR))
-                  {
-                      printf("ERROR : slave %d is in SAFE_OP + ERROR, attempting ack.\n", slave);
-                      m_ec_slave[slave].state = (EC_STATE_SAFE_OP + EC_STATE_ACK);
-                      ecx_writestate(&m_ctx,slave);
-                  }
-                  else if(m_ec_slave[slave].state == EC_STATE_SAFE_OP)
-                  {
-                      printf("WARNING : slave %d is in SAFE_OP, change to OPERATIONAL.\n", slave);
-                      m_ec_slave[slave].state = EC_STATE_OPERATIONAL;
-                      ecx_writestate(&m_ctx,slave);
-                  }
-                  else if(m_ec_slave[slave].state > EC_STATE_NONE)
-                  {
-                      if (ecx_reconfig_slave(&m_ctx,slave, EC_TIMEOUTMON))
-                      {
-                        m_ec_slave[slave].islost = FALSE;
-                        printf("MESSAGE : slave %d reconfigured\n",slave);
-                      }
-                  }
-                  else if(!m_ec_slave[slave].islost)
-                  {
-                      /* re-check state */
-                      ecx_statecheck(&m_ctx,slave, EC_STATE_OPERATIONAL, EC_TIMEOUTRET);
-                      if (m_ec_slave[slave].state == EC_STATE_NONE)
-                      {
-                        m_ec_slave[slave].islost = TRUE;
-                        printf("ERROR : slave %d lost\n",slave);
-                      }
-                  }
-                }
-                if (m_ec_slave[slave].islost)
-                {
-                  if(m_ec_slave[slave].state == EC_STATE_NONE)
-                  {
-                      if (ecx_recover_slave(&m_ctx,slave, EC_TIMEOUTMON))
-                      {
-                        m_ec_slave[slave].islost = FALSE;
-                        printf("MESSAGE : slave %d recovered\n",slave);
-                      }
-                  }
-                  else
-                  {
-                      m_ec_slave[slave].islost = FALSE;
-                      printf("MESSAGE : slave %d found\n",slave);
-                  }
-                }
-            }
-            // if(!m_ctx.grouplist[m_currentgroup].docheckstate)
-            //     printf("OK : all slaves resumed OPERATIONAL.\n");
-        }
+
       }
       osal_monotonic_sleep(&ti_Sleep);
     }
@@ -180,6 +126,7 @@ int EtherCATMaster::InitRT_Thread()
          printf("Calculated workcounter %d\n", m_expectedWKC);
          /* wait for all slaves to reach SAFE_OP state */
          ecx_statecheck(&m_ctx, 0, EC_STATE_SAFE_OP, EC_TIMEOUTSTATE * 3);
+
          if (m_ctx.slavelist[0].state != EC_STATE_SAFE_OP)
          {
             printf("Not all slaves reached safe operational state.\n");
@@ -193,7 +140,12 @@ int EtherCATMaster::InitRT_Thread()
                }
             }
          }
-
+        //控制进入OP
+        m_ctx.slavelist[0].state = EC_STATE_OPERATIONAL;
+        ecx_writestate(&m_ctx,0);
+        ecx_send_processdata(&m_ctx);
+        m_nWkc = ecx_receive_processdata(&m_ctx,EC_TIMEOUTRET);
+        ecx_statecheck(&m_ctx,0, EC_STATE_OPERATIONAL, 50000);
          ecx_readstate(&m_ctx);
          for (cnt = 1; cnt <= m_ctx.slavecount; cnt++)
          {
@@ -224,6 +176,11 @@ int EtherCATMaster::InitRT_Thread()
                    m_ctx.slavelist[cnt].FMMU0func, m_ctx.slavelist[cnt].FMMU1func, m_ctx.slavelist[cnt].FMMU2func, m_ctx.slavelist[cnt].FMMU3func);
             printf(" MBX length wr: %d rd: %d MBX protocols : %2.2x\n", m_ctx.slavelist[cnt].mbx_l, m_ctx.slavelist[cnt].mbx_rl, m_ctx.slavelist[cnt].mbx_proto);
             ssigen = ecx_siifind(&m_ctx, cnt, ECT_SII_GENERAL);
+            m_ctx.slavelist[cnt].state = EC_STATE_OPERATIONAL;
+            ecx_writestate(&m_ctx,cnt);
+            ecx_send_processdata(&m_ctx);
+            m_nWkc = ecx_receive_processdata(&m_ctx,EC_TIMEOUTRET);
+            ecx_statecheck(&m_ctx,0, EC_STATE_OPERATIONAL, 50000);
             /* SII general section */
             if (ssigen)
             {
