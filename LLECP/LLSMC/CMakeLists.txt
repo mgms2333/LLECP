@@ -1,5 +1,6 @@
+cmake_minimum_required(VERSION 3.10)
+project(hrsmc LANGUAGES CXX)
+
 
 add_subdirectory(CIA402Axis)
-add_subdirectory(FunctionBlock)
-add_subdirectory(MotionAlgorithm)
-# add_subdirectory(MotionFunctionBlock)  # 如启用，再解注释
+add_subdirectory(SMbasic)

@@ -1,16 +1,17 @@
-#ifndef FUNCTIONBLOCKBASE_H
-#define FUNCTIONBLOCKBASE_H
+#ifndef SMbasic_H
+#define SMbasic_H
 #include"../CIA402Axis/CIA402Axis.h"
-class FunctionBlockBase
+#include"SMbasicDef.h"
+class SMbasic
 {
 private:
     CIA402Axis* m_pCIA402Axis;
     /* data */
 public:
-    FunctionBlockBase(/* args */);
-    ~FunctionBlockBase();
+    SMbasic(/* args */);
+    ~SMbasic();
     void operator()(CIA402Axis* axis);
 protected:
     virtual void Execute();
 };
-#endif // FUNCTIONBLOCKBASE_H
+#endif // SMbasic_H

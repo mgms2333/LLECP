@@ -59,7 +59,24 @@ public:
     int StartMaster();
     int CloseMaster();
     void Test();
+    uint8_t writeSDO_SHORT(int slave_no, uint16_t index, uint8_t subidx, short value);
+    uint8_t writeSDO_INT(int slave_no, uint16_t index, uint8_t subidx, int value);
+    uint8_t writeSDO_LONG(int slave_no, uint16_t index, uint8_t subidx, long value);
+    uint8_t writeSDO_UCHAR(int slave_no, uint16_t index, uint8_t subidx,unsigned char value);
+    uint8_t writeSDO_USHORT(int slave_no, uint16_t index, uint8_t subidx,unsigned short value);
+    uint8_t writeSDO_UINT(int slave_no, uint16_t index, uint8_t subidx,unsigned int value);
+    uint8_t writeSDO_ULONG(int slave_no, uint16_t index, uint8_t subidx,unsigned long value);
 
+    // char readSDO_CHAR(int slave_no, uint16_t index, uint8_t subidx);
+    short readSDO_SHORT(int slave_no, uint16_t index, uint8_t subidx);
+    int readSDO_INT(int slave_no, uint16_t index, uint8_t subidx, int *Value);
+    long readSDO_LONG(int slave_no, uint16_t index, uint8_t subidx);
+    unsigned char readSDO_UCHAR(int slave_no, uint16_t index, uint8_t subidx);
+    unsigned short readSDO_USHORT(int slave_no, uint16_t index, uint8_t subidx);
+    unsigned int readSDO_UINT(int slave_no, uint16_t index, uint8_t subidx);
+    unsigned long readSDO_ULONG(int slave_no, uint16_t index, uint8_t subidx);
+
+    
 protected:
     //Thread
     int CreateRT_Thread(std::thread* th,void (EtherCATMaster::*func)());
@@ -72,5 +89,8 @@ protected:
     //SOEM
     int ScanSlave();
     int InitSlave();
+public:
+    //Axis
+    int ConstructionCIA402AxisVec(std::vector<CIA402Axis*>* v_Axis);
 };
 #endif // ETHERCATMASTER_H

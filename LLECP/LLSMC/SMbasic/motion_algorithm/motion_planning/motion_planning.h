@@ -1,7 +1,7 @@
-#include"Luolimath.h"
+
 #ifndef __S_CURVE_GENERATOR_H_
 #define __S_CURVE_GENERATOR_H_
-
+#include"MotionDefine.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -28,14 +28,14 @@ typedef struct
 
 /**
 * @brief      释放轨迹点对应的内存
-* @author     luoli
+* @author     蒋宇航
 */
 void free_trajectory_segment(trajectory_segment* traj);
 
 /**
 * @brief      两点间s速度曲线（也称七段式轨迹）实现（考虑对称约束）
 *             加加速->匀加速->减加速->匀速->加减速->匀减速->减减速
-* @author     luoli
+* @author     蒋宇航
 * @version    1.0
 * @param[in]  q0       - 起始位置
 * @param[in]  q1       - 目标位置
@@ -52,7 +52,7 @@ trajectory_segment s_curve_generator(double q0, double q1, double v0, double v1,
 
 /**
 * @brief      多点间实现S型加减速规划
-* @author     luoli
+* @author     蒋宇航
 * @version    1.0
 * @param[in]  q_points(1xN) - 位置向量
 * @param[in]  v_points(1xN) - 速度向量
@@ -68,7 +68,7 @@ trajectory_segment multi_s_curve_generator(double* q_points, double *v_points, d
 
 /**
 * @brief      过任意给定路径点的S型加减速规划(仅需要指定起始速度、终止速度，自动计算中间速度)
-* @author     luoli
+* @author     蒋宇航
 * @version    1.0
 * @param[in]  q_points(1xN) - 位置向量
 * @param[in]  v_start       - 起始速度
@@ -86,7 +86,7 @@ trajectory_segment multi_s_curve_generator_based_on_path(double* q_points, doubl
 /**
 * @brief      两点间s速度曲线（也称七段式轨迹）实现（考虑对称约束）
 *             加加速->匀加速->减加速->匀速->加减速->匀减速->减减速
-* @author     luoli
+* @author     蒋宇航
 * @version    1.0
 * @param[in]  q0       - 起始位置
 * @param[in]  q1       - 目标位置

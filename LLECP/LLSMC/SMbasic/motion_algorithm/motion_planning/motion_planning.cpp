@@ -1,4 +1,4 @@
-#include"MotionPlanning.h"
+#include"motion_planning.h"
 
 // 用于控制内存申请，设置允许的最大路径点个数
 #define MAX_PATH_NUM_ALLOWED 100000

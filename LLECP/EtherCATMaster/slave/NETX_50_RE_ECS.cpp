@@ -11,3 +11,36 @@ NETX_50_RE_ECS::NETX_50_RE_ECS(/* args */)
 NETX_50_RE_ECS::~NETX_50_RE_ECS()
 {
 }
+
+int NETX_50_RE_ECS::InitPDOmap(ec_slavet* ec_clave)
+{
+    if (ec_clave == nullptr)
+    {
+        return -1;
+    }
+    m_TxPDO = (ST_NETX_TxPDO*)ec_clave->inputs;
+    m_RxPDO = (ST_NETX_RxPDO*)ec_clave->outputs;
+    return 0;
+}
+
+void NETX_50_RE_ECS::Slave_RT()
+{
+    //printf("ActPOS:%d\n",m_TxPDO->ActualPos);
+    return;
+}
+
+int NETX_50_RE_ECS::ConstructionCIA402Axis(CIA402Axis*& p_Axis)
+{
+    p_Axis = new CIA402Axis();
+    ST_SMCInitMap st_map;
+    //映射PDO
+    st_map.pControlword = &m_RxPDO->ControlWord;
+    st_map.pTargetModesOfOperation = &m_RxPDO->TargetModeOpration;
+    st_map.pTargetPosition = &m_RxPDO->TargetPos;
+
+    st_map.pStatusWord = &m_TxPDO->StatusWord;
+    st_map.pActualModesOfOperation = &m_TxPDO->ActModeOpration;
+    st_map.pActualPosition = &m_TxPDO->ActualPos;
+    p_Axis->Axis_InitMap(st_map);
+    return 0;
+}

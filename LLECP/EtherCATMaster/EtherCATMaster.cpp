@@ -46,7 +46,9 @@ int EtherCATMaster::StartMaster()
 }
 int EtherCATMaster::CloseMaster()
 {
-  return 0;
+   /* stop SOEM, close socket */
+   ecx_close(&m_ctx);
+   return 0;
 }
 
 int EtherCATMaster::InitRT_Thread()
@@ -80,9 +82,12 @@ int EtherCATMaster::InitRT_Thread()
             m_wkc = ecx_receive_processdata(&m_ctx,EC_TIMEOUTRET);
         }
       }
+      for(size_t i = 0;i<m_v_slave.size();i++)
+      {
+         m_v_slave[i]->Slave_RT();
+      }
       osal_monotonic_sleep(&ti_Sleep);
     }
-    
     return;
  }
  void EtherCATMaster::EtherCAT_RT_Check()
@@ -115,7 +120,21 @@ int EtherCATMaster::InitRT_Thread()
       if (ecx_config_init(&m_ctx) > 0)
       {
          m_p_ECTgroup = &m_ctx.grouplist[0];
+          if (ecx_statecheck(&m_ctx,0, EC_STATE_PRE_OP, EC_TIMEOUTSTATE*4) != EC_STATE_PRE_OP)
+                {
+                    printf("[HRC.StartMaster]could not set EC_STATE_PRE_OP\n");
+                    return false;
+                }
+         for (size_t i = 1; i <= m_ctx.slavecount; i++)
+        {
+          // writeSDO_INT(i, 0x1c12, 0x00, 0x00);
+          // writeSDO_INT(i, 0x1c12, 0x01, 0x1600);
+          // writeSDO_INT(i, 0x1c12, 0x00, 0x01);
 
+          // writeSDO_INT(i, 0x1c13, 0x00, 0x00);
+          // writeSDO_INT(i, 0x1c13, 0x01, 0x1a00);
+          // writeSDO_INT(i, 0x1c13, 0x00, 0x01);
+        }
          ecx_config_map_group(&m_ctx, m_PDOmap, 0);
 
          ecx_configdc(&m_ctx);
@@ -146,6 +165,15 @@ int EtherCATMaster::InitRT_Thread()
         ecx_send_processdata(&m_ctx);
         m_nWkc = ecx_receive_processdata(&m_ctx,EC_TIMEOUTRET);
         ecx_statecheck(&m_ctx,0, EC_STATE_OPERATIONAL, 50000);
+        // uint32 Isize, Osize;
+        // ecx_readPDOmap(&m_ctx,1, &Osize, &Isize);
+         writeSDO_INT(1, 0x1c12, 0x00, 0x00);
+         writeSDO_INT(1, 0x1c12, 0x01, 0x1600);
+         writeSDO_INT(1, 0x1c12, 0x00, 0x01);
+
+         writeSDO_INT(1, 0x1c13, 0x00, 0x00);
+         writeSDO_INT(1, 0x1c13, 0x01, 0x1a00);
+         writeSDO_INT(1, 0x1c13, 0x00, 0x01);
          ecx_readstate(&m_ctx);
          for (cnt = 1; cnt <= m_ctx.slavecount; cnt++)
          {
@@ -207,9 +235,6 @@ int EtherCATMaster::InitRT_Thread()
       {
          printf("No slaves found!\n");
       }
-      printf("End slaveinfo, close socket\n");
-      /* stop SOEM, close socket */
-      ecx_close(&m_ctx);
    }
    else
    {
@@ -227,6 +252,13 @@ int EtherCATMaster::InitSlave()
       case 27:
           m_v_slave.clear();
           pSlave = new NETX_50_RE_ECS();
+        //  writeSDO_INT(i, 0x1c12, 0x00, 0x00);
+        //  writeSDO_INT(i, 0x1c12, 0x01, 0x1600);
+        //  writeSDO_INT(i, 0x1c12, 0x00, 0x01);
+
+        //  writeSDO_INT(i, 0x1c13, 0x00, 0x00);
+        //  writeSDO_INT(i, 0x1c13, 0x01, 0x1a00);
+        //  writeSDO_INT(i, 0x1c13, 0x00, 0x01);
           pSlave->InitPDOmap(&m_ctx.slavelist[i]);
           m_v_slave.push_back(pSlave);
           break;
@@ -236,4 +268,20 @@ int EtherCATMaster::InitSlave()
     }
   }
   return 0;
+}
+
+int EtherCATMaster::ConstructionCIA402AxisVec(std::vector<CIA402Axis*>* v_Axis)
+{
+  uint16 res =0;
+  for(size_t i =0;i<m_v_slave.size();i++)
+  {
+    CIA402Axis *p_Axis;
+    if(m_v_slave[i]->ConstructionCIA402Axis(p_Axis)!=-1)
+    {
+      v_Axis->push_back(p_Axis);
+      int32_t p = *(p_Axis->m_st_map.pActualPosition);
+      res++;
+    }
+  }
+  return res;
 }
