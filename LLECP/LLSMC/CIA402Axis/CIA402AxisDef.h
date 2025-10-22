@@ -1,5 +1,4 @@
-#ifndef HRSMCDEF_H
-#define HRSMCDEF_H
+#pragma once
 
 #include <stdint.h> 
 #include <string.h>
@@ -297,11 +296,3 @@ enum EN_BufferMode
     enBlendingLow = 2, // 融合过渡，低优先级平滑衔接
     enBlendingHigh = 3 // 融合过渡，高优先级平滑衔接
 };
-
-
-
-
-
-
-
-#endif

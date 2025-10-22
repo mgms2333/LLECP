@@ -10,7 +10,7 @@ public:
 public:
     CIA402Axis();
     ~CIA402Axis();
-    int Axis_InitMap(ST_SMCInitMap st_map);
+    int Axis_InitMap(ST_SMCInitMap st_map)noexcept;
 
 };
 

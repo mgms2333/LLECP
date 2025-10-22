@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 project(LLECP CXX)
 
-
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY /usr/bin/LLETC)  # 可执行文件（.out / 无扩展名）
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY /usr/bin/LLETC)  # 动态库（.so）
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY /usr/bin/LLETC)  # 静态库（.a）
 set(CMAKE_CXX_STANDARD 17)
 
 include_directories(/opt/etherlab/include)
@@ -16,6 +18,7 @@ target_link_libraries(LLECP PUBLIC
     RT_Script 
     CIA402Axis
     motion_algorithm
+    soem
     SMbasic
     pthread 
     EtherCATMaster

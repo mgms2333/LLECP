@@ -7,7 +7,7 @@ EtherCATMaster::EtherCATMaster(uint8_t nMasterIndex)
     m_nShitTime = 0;
     m_fCycle = 1.0;
     m_bIsSimulation;
-    m_sNetWork = "enp1s0";
+    m_sNetWork = "enp2s0";
     ti_Sleep.tv_sec = 0;
     ti_Sleep.tv_nsec = m_fCycle*1000000;
 
@@ -26,7 +26,7 @@ int EtherCATMaster::CreateRT_Thread(std::thread* th,void (EtherCATMaster::*func)
   pthread_t native = th->native_handle();
   // 设置调度策略与优先级
   sched_param sch_params;
-  sch_params.sched_priority = 1;   // 优先级范围通常 1~99（越高越实时）
+  sch_params.sched_priority = 99;   // 优先级范围通常 1~99（越高越实时）
   int policy = SCHED_FIFO;          // 实时调度策略 FIFO
   if (pthread_setschedparam(native, policy, &sch_params)) 
   {
@@ -58,7 +58,7 @@ int EtherCATMaster::InitRT_Thread()
       /* create process data thread */
     CreateRT_Thread(&thEtherCAT_RT,&EtherCATMaster::EtherCAT_RT);
       /* create thread to handle slave error handling in OP */
-    CreateRT_Thread(&thEtherCAT_RT_Check,&EtherCATMaster::EtherCAT_RT_Check);
+    //CreateRT_Thread(&thEtherCAT_RT_Check,&EtherCATMaster::EtherCAT_RT_Check);
     return 0;
 }
 
@@ -125,16 +125,6 @@ int EtherCATMaster::InitRT_Thread()
                     printf("[HRC.StartMaster]could not set EC_STATE_PRE_OP\n");
                     return false;
                 }
-         for (size_t i = 1; i <= m_ctx.slavecount; i++)
-        {
-          // writeSDO_INT(i, 0x1c12, 0x00, 0x00);
-          // writeSDO_INT(i, 0x1c12, 0x01, 0x1600);
-          // writeSDO_INT(i, 0x1c12, 0x00, 0x01);
-
-          // writeSDO_INT(i, 0x1c13, 0x00, 0x00);
-          // writeSDO_INT(i, 0x1c13, 0x01, 0x1a00);
-          // writeSDO_INT(i, 0x1c13, 0x00, 0x01);
-        }
          ecx_config_map_group(&m_ctx, m_PDOmap, 0);
 
          ecx_configdc(&m_ctx);

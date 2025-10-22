@@ -51,23 +51,6 @@ std::vector<CIA402Axis*> v_Axis;
 bool Enabel,bBusy,bDone, bEror;int nErrorID;
 std::thread RT_Thread;
 timespec ti_Sleep;
-int CreateRT_Thread(std::thread* th,void (*func)())
-{
-        
-  th = new std::thread(func);
-  // 获取 pthread 原生句柄
-  pthread_t native = th->native_handle();
-  // 设置调度策略与优先级
-  sched_param sch_params;
-  sch_params.sched_priority = 1;   // 优先级范围通常 1~99（越高越实时）
-  int policy = SCHED_FIFO;          // 实时调度策略 FIFO
-  if (pthread_setschedparam(native, policy, &sch_params)) 
-  {
-      printf("无法设置实时优先级需要root权限\n");
-  }
-  th->detach();  
-  return 0;
-}
 void thFB_rt()
 {
     while (true)
@@ -84,7 +67,7 @@ int TEST()
     ti_Sleep.tv_nsec = 1000000;
     pMaster->StartMaster();
     pMaster->ConstructionCIA402AxisVec(&v_Axis);
-    CreateRT_Thread(&RT_Thread,&thFB_rt);
+    std::thread RT_Thread(thFB_rt);
     int c =0;
     while (true)
     {
@@ -106,7 +89,7 @@ int TEST()
         *(v_Axis[0]->m_st_map.pTargetPosition) = *(v_Axis[0]->m_st_map.pActualPosition);
         osal_monotonic_sleep(&ti_Sleep);
         c++;
-        if(c == 2000)
+        if(c == 500)
         {
              c = 0;
              break;
@@ -119,7 +102,7 @@ int TEST()
         *(v_Axis[0]->m_st_map.pTargetPosition) = *(v_Axis[0]->m_st_map.pActualPosition);
         osal_monotonic_sleep(&ti_Sleep);
         c++;
-        if(c == 2000)
+        if(c == 500)
         {
              c = 0;
              break;
@@ -133,7 +116,7 @@ int TEST()
         *(v_Axis[0]->m_st_map.pTargetPosition) = *(v_Axis[0]->m_st_map.pActualPosition);
         osal_monotonic_sleep(&ti_Sleep);
         c++;
-        if(c == 2000)
+        if(c == 500)
         {
              c = 0;
              break;

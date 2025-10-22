@@ -2,7 +2,7 @@ include_directories(/opt/etherlab/include)
 add_subdirectory(SOEM)
 link_directories(/opt/etherlab/lib)
 # 创建一个静态库（也可用 SHARED 变动态库）
-add_library(EtherCATMaster
+add_library(EtherCATMaster SHARED
     EtherCATMaster.cpp
     sdo_operation.cpp
     slave/SlaveBase.cpp

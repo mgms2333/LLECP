@@ -2,7 +2,7 @@
 # license. See the file LICENSE.md distributed with this software for
 # full license information.
 
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.1)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 project(SOEM VERSION 2.0.0 LANGUAGES C)
 
@@ -73,7 +73,7 @@ endif()
 set(CMAKE_C_OUTPUT_EXTENSION_REPLACE 1)
 set(CMAKE_CXX_OUTPUT_EXTENSION_REPLACE 1)
 
-add_library(soem
+add_library(soem SHARED
   soem/ec_base.c
   soem/ec_coe.c
   soem/ec_config.c
