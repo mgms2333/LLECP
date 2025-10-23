@@ -1,5 +1,5 @@
 
-
+#define SMC_TIME_OUT 500 * 1000
 //Functional Status of MC_InitResetAxis 
 
 enum FS_InitResetAxis
@@ -109,3 +109,5 @@ typedef enum// : EC_T_USHORT
 	en_StatusWord_ms1                       = 1 << 14,
 	en_StatusWord_ms2                       = 1 << 15,
 } EN_SMC_StatusWord;
+
+

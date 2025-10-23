@@ -269,7 +269,6 @@ int EtherCATMaster::ConstructionCIA402AxisVec(std::vector<CIA402Axis*>* v_Axis)
     if(m_v_slave[i]->ConstructionCIA402Axis(p_Axis)!=-1)
     {
       v_Axis->push_back(p_Axis);
-      int32_t p = *(p_Axis->m_st_map.pActualPosition);
       res++;
     }
   }

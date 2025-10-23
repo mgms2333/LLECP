@@ -1,12 +1,19 @@
 #ifndef SMbasic_H
 #define SMbasic_H
 #include"../CIA402Axis/CIA402Axis.h"
+#include"SMbasicErrorCode.h"
 #include"SMbasicDef.h"
 class SMbasic
 {
-private:
+protected:
     CIA402Axis* m_pCIA402Axis;
-    /* data */
+    SMCTimer m_Timer;
+    SMCTimer m_TimerTimeout;
+    bool m_Enabel;
+    bool m_bBusy;
+    bool m_bDone;
+    bool m_bError;
+    int m_nErrorID;
 public:
     SMbasic(/* args */);
     ~SMbasic();

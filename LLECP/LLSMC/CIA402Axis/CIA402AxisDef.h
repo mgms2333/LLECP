@@ -107,7 +107,7 @@ enum EN_ModesOfOperation
 };
 
 //OpenPLC标准
-enum EN_SMCMotionState
+enum EN_AxisMotionState
 {
     motionState_power_off           = 0,  // Disabled
     motionState_errorstop           = 1,  // Error Stop
@@ -159,27 +159,6 @@ struct ST_SMCAxisMotionData
         dActCur = 0;
     }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 class SMCTimer 
 {

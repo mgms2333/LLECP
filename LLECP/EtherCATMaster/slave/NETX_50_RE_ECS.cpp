@@ -31,7 +31,7 @@ void NETX_50_RE_ECS::Slave_RT()
 
 int NETX_50_RE_ECS::ConstructionCIA402Axis(CIA402Axis*& p_Axis)
 {
-    p_Axis = new CIA402Axis();
+    p_Axis = new CIA402Axis(false);
     ST_SMCInitMap st_map;
     //映射PDO
     st_map.pControlword = &m_RxPDO->ControlWord;

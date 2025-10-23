@@ -1,6 +1,7 @@
 # hrsmc/CIA402Axis/CMakeLists.txt
 add_library(CIA402Axis SHARED
     CIA402Axis.cpp
+    CIA402AxisPDO.cpp
 )
 
 target_include_directories(CIA402Axis PUBLIC

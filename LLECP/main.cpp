@@ -46,16 +46,16 @@ int RT_ScripTest()
 
 
 
-MC_Power fbMC_Power;
+MC_PowerOn fbMC_PowerOn;
+MC_InitResetAxis fbMC_InitResetAxis;
 std::vector<CIA402Axis*> v_Axis;
-bool Enabel,bBusy,bDone, bEror;int nErrorID;
+bool Enabel,bBusy,bDone, bError;int nErrorID;
 std::thread RT_Thread;
 timespec ti_Sleep;
 void thFB_rt()
 {
     while (true)
     {
-        fbMC_Power(v_Axis[0],true,bBusy,bDone,bEror,nErrorID);
         osal_monotonic_sleep(&ti_Sleep);
     }
 }
@@ -68,64 +68,34 @@ int TEST()
     pMaster->StartMaster();
     pMaster->ConstructionCIA402AxisVec(&v_Axis);
     std::thread RT_Thread(thFB_rt);
-    int c =0;
+    printf("InitReset\n");
+    fbMC_InitResetAxis(v_Axis[0],false,bBusy,bDone,bError,nErrorID);
     while (true)
     {
-        *(v_Axis[0]->m_st_map.pTargetPosition) = *(v_Axis[0]->m_st_map.pActualPosition);
-        *(v_Axis[0]->m_st_map.pControlword) = 0x86;
-        osal_monotonic_sleep(&ti_Sleep);
-        c++;
-        if(c == 1000)
+        fbMC_InitResetAxis(v_Axis[0],true,bBusy,bDone,bError,nErrorID);
+        if(bDone)
         {
-             c = 0;
              break;
         }
+        osal_monotonic_sleep(&ti_Sleep);
     }
-    
-
+    printf("enable\n");
+    fbMC_PowerOn(v_Axis[0],false,bBusy,bDone,bError,nErrorID);
     while (true)
     {
-        *(v_Axis[0]->m_st_map.pControlword) = 6;
-        *(v_Axis[0]->m_st_map.pTargetPosition) = *(v_Axis[0]->m_st_map.pActualPosition);
-        osal_monotonic_sleep(&ti_Sleep);
-        c++;
-        if(c == 500)
+        fbMC_PowerOn(v_Axis[0],true,bBusy,bDone,bError,nErrorID);
+        if(bDone)
         {
-             c = 0;
              break;
         }
-    }
-
-    while (true)
-    {
-        *(v_Axis[0]->m_st_map.pControlword) = 7;
-        *(v_Axis[0]->m_st_map.pTargetPosition) = *(v_Axis[0]->m_st_map.pActualPosition);
         osal_monotonic_sleep(&ti_Sleep);
-        c++;
-        if(c == 500)
-        {
-             c = 0;
-             break;
-        }
-    }
-
-    
-    while (true)
-    {
-        *(v_Axis[0]->m_st_map.pControlword) = 15;
-        *(v_Axis[0]->m_st_map.pTargetPosition) = *(v_Axis[0]->m_st_map.pActualPosition);
-        osal_monotonic_sleep(&ti_Sleep);
-        c++;
-        if(c == 500)
-        {
-             c = 0;
-             break;
-        }
     }
     printf("Start\n");
     while (true)
     {
-        *(v_Axis[0]->m_st_map.pTargetPosition) = *(v_Axis[0]->m_st_map.pActualPosition) + 500;
+        int32_t pos = 0;
+        v_Axis[0]->Axis_PDO_ReadActualPosition(pos);
+        v_Axis[0]->Axis_PDO_SetTargetPosition(pos+500);
         osal_monotonic_sleep(&ti_Sleep);
     }
 

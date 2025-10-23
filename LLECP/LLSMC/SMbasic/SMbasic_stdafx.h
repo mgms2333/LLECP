@@ -4,7 +4,8 @@
 
 #include "AxisConfig/MC_SetGearingRatio.h"
 
-#include "AxisControl/MC_Power.h"
+#include "AxisControl/MC_InitResetAxis.h"
+#include "AxisControl/MC_PowerOn.h"
 
 #include "AxisMovement/MC_SetPosition.h"
 
