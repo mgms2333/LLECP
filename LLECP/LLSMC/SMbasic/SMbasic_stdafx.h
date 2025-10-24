@@ -11,4 +11,6 @@
 
 #include "AxisRead/MC_ReadActualPosition.h"
 
+#include "SoftMotion/SoftMotion.h"
+
 

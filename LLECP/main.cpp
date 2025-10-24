@@ -48,6 +48,7 @@ int RT_ScripTest()
 
 MC_PowerOn fbMC_PowerOn;
 MC_InitResetAxis fbMC_InitResetAxis;
+SoftMotion* pSoftMotion;
 std::vector<CIA402Axis*> v_Axis;
 bool Enabel,bBusy,bDone, bError;int nErrorID;
 std::thread RT_Thread;
@@ -56,6 +57,7 @@ void thFB_rt()
 {
     while (true)
     {
+        pSoftMotion->SoftMotionRun();
         osal_monotonic_sleep(&ti_Sleep);
     }
 }
@@ -67,6 +69,7 @@ int TEST()
     ti_Sleep.tv_nsec = 1000000;
     pMaster->StartMaster();
     pMaster->ConstructionCIA402AxisVec(&v_Axis);
+    pSoftMotion = new SoftMotion(v_Axis);
     std::thread RT_Thread(thFB_rt);
     printf("InitReset\n");
     fbMC_InitResetAxis(v_Axis[0],false,bBusy,bDone,bError,nErrorID);
@@ -94,8 +97,8 @@ int TEST()
     while (true)
     {
         int32_t pos = 0;
-        v_Axis[0]->Axis_PDO_ReadActualPosition(pos);
-        v_Axis[0]->Axis_PDO_SetTargetPosition(pos+500);
+        pSoftMotion->SoftMotion_PDO_ReadActualPosition(v_Axis[0],pos);
+        pSoftMotion->SoftMotion_PDO_SetTargetPosition(v_Axis[0],pos+500);
         osal_monotonic_sleep(&ti_Sleep);
     }
 

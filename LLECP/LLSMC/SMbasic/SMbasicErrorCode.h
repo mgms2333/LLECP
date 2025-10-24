@@ -1,3 +1,4 @@
+#pragma once
 enum SMEC_SMbasicErrorCode
 {
     SMEC_SUCCESSED,

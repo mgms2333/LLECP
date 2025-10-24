@@ -72,12 +72,12 @@ void MC_InitResetAxis::Execute()
         break;
     case InitResetting:
         m_bBusy = true;
-        m_pCIA402Axis->Axis_PDO_SetControlword(en_ControlWord_fr);
+        m_pCIA402Axis->SoftMotion_PDO_SetControlword(en_ControlWord_fr);
         if(m_TimerTimeout.Ton(true, SMC_TIME_OUT))
         {
-            m_pCIA402Axis->Axis_PDO_SetControlword(en_ControlWord_Init);
+            m_pCIA402Axis->SoftMotion_PDO_SetControlword(en_ControlWord_Init);
             m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_power_off);
-            m_pCIA402Axis->Axis_PDO_ReadControlword(nControlword);
+            m_pCIA402Axis->SoftMotion_PDO_ReadControlword(nControlword);
             if(nControlword == en_ControlWord_Init)
             {
                 m_FSInitResetAxis = InitResetFinish;

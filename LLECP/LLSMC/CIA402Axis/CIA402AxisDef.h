@@ -8,19 +8,19 @@
 #include <math.h>
 struct ST_SMC_PDO_Virtual
 {
-    uint16_t   pControlword;
-    uint16_t   pStatusWord;
-    uint16_t   pErrorCode;
-    int32_t    pTargetPosition;
-    int32_t    pTargetVelocity;
-    int16_t    pTargetTorque;
-    uint8_t    pTargetModesOfOperation;
-    int32_t    pActualPosition;
-    int32_t    pActualVelocity;
-    int16_t    pActualTorque;
-    uint8_t    pActualModesOfOperation;
-    uint32_t   pDigitalInputs;
-    uint32_t   pDigitalOutputs;
+    uint16_t   Controlword;
+    uint16_t   StatusWord;
+    uint16_t   ErrorCode;
+    int32_t    TargetPosition;
+    int32_t    TargetVelocity;
+    int16_t    TargetTorque;
+    uint8_t    TargetModesOfOperation;
+    int32_t    ActualPosition;
+    int32_t    ActualVelocity;
+    int16_t    ActualTorque;
+    uint8_t    ActualModesOfOperation;
+    uint32_t   DigitalInputs;
+    uint32_t   DigitalOutputs;
 };
 
 //该映射遵照CanOpen402协议
@@ -56,7 +56,42 @@ struct ST_SMCInitMap
     }
 };
 
+// 运动方向
+enum EN_Direction
+{
+    enPositive = 0,   // 正方向
+    enNegative = 1,   // 负方向
+    enCurrent  = 2    // 保持当前方向（有些厂商支持）
+};
 
+// 缓冲模式
+enum EN_BufferMode
+{
+    enAborting = 0,   // 立即中断当前运动，执行新指令
+    enBuffered = 1,   // 缓冲，等前一运动完成后再执行
+    enBlendingLow = 2, // 融合过渡，低优先级平滑衔接
+    enBlendingHigh = 3 // 融合过渡，高优先级平滑衔接
+};
+
+struct ST_PlanningMotionParam
+{
+    double pos;
+    double vel;
+    double acc;
+    double dec;
+    double jerk;
+    EN_Direction  Direction;
+    EN_BufferMode BufferMode;
+    void* fbID;//功能块指针
+};
+
+
+
+struct ST_SoftMotionData
+{
+    ST_SMC_PDO_Virtual stSoftMotionPDO;
+    ST_PlanningMotionParam stPlanningMotionParam;
+};
 
 
 struct ST_SMCAxisConfiguration
@@ -259,19 +294,3 @@ public:
     }
 };
 
-// 运动方向
-enum EN_Direction
-{
-    enPositive = 0,   // 正方向
-    enNegative = 1,   // 负方向
-    enCurrent  = 2    // 保持当前方向（有些厂商支持）
-};
-
-// 缓冲模式
-enum EN_BufferMode
-{
-    enAborting = 0,   // 立即中断当前运动，执行新指令
-    enBuffered = 1,   // 缓冲，等前一运动完成后再执行
-    enBlendingLow = 2, // 融合过渡，低优先级平滑衔接
-    enBlendingHigh = 3 // 融合过渡，高优先级平滑衔接
-};

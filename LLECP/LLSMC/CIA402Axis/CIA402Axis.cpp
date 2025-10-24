@@ -4,19 +4,19 @@ CIA402Axis::CIA402Axis(bool bVirtual)
    m_bVirtual = bVirtual;
    m_enAxisMotionState = motionState_power_off;
    //map init
-    m_st_map.pControlword             = &m_stPDO_Virtual.pControlword;
-    m_st_map.pStatusWord              = &m_stPDO_Virtual.pStatusWord;
-    m_st_map.pErrorCode               = &m_stPDO_Virtual.pErrorCode;
-    m_st_map.pTargetPosition          = &m_stPDO_Virtual.pTargetPosition;
-    m_st_map.pTargetVelocity          = &m_stPDO_Virtual.pTargetVelocity;
-    m_st_map.pTargetTorque            = &m_stPDO_Virtual.pTargetTorque;
-    m_st_map.pTargetModesOfOperation  = &m_stPDO_Virtual.pTargetModesOfOperation;
-    m_st_map.pActualPosition          = &m_stPDO_Virtual.pActualPosition;
-    m_st_map.pActualVelocity          = &m_stPDO_Virtual.pActualVelocity;
-    m_st_map.pActualTorque            = &m_stPDO_Virtual.pActualTorque;
-    m_st_map.pActualModesOfOperation  = &m_stPDO_Virtual.pActualModesOfOperation;
-    m_st_map.pDigitalInputs           = &m_stPDO_Virtual.pDigitalInputs;
-    m_st_map.pDigitalOutputs          = &m_stPDO_Virtual.pDigitalOutputs;
+    m_st_map.pControlword             = &m_stPDO_Virtual.Controlword;
+    m_st_map.pStatusWord              = &m_stPDO_Virtual.StatusWord;
+    m_st_map.pErrorCode               = &m_stPDO_Virtual.ErrorCode;
+    m_st_map.pTargetPosition          = &m_stPDO_Virtual.TargetPosition;
+    m_st_map.pTargetVelocity          = &m_stPDO_Virtual.TargetVelocity;
+    m_st_map.pTargetTorque            = &m_stPDO_Virtual.TargetTorque;
+    m_st_map.pTargetModesOfOperation  = &m_stPDO_Virtual.TargetModesOfOperation;
+    m_st_map.pActualPosition          = &m_stPDO_Virtual.ActualPosition;
+    m_st_map.pActualVelocity          = &m_stPDO_Virtual.ActualVelocity;
+    m_st_map.pActualTorque            = &m_stPDO_Virtual.ActualTorque;
+    m_st_map.pActualModesOfOperation  = &m_stPDO_Virtual.ActualModesOfOperation;
+    m_st_map.pDigitalInputs           = &m_stPDO_Virtual.DigitalInputs;
+    m_st_map.pDigitalOutputs          = &m_stPDO_Virtual.DigitalOutputs;
 }
 CIA402Axis::~CIA402Axis(){}
 

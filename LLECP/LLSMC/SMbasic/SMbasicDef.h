@@ -1,4 +1,4 @@
-
+#pragma once
 #define SMC_TIME_OUT 500 * 1000
 //Functional Status of MC_InitResetAxis 
 
