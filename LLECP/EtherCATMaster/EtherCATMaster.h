@@ -11,6 +11,9 @@
 #define SLAVEID 2
 #define EC_TIMEOUTMON 500
 
+static const int NSEC_PER_SECOND = 1e+9;
+static const int NSEC_PER_USECOND = 1e+3;
+
 class EtherCATMaster
 {
 protected:
@@ -85,7 +88,6 @@ protected:
     int InitRT_Thread();
     bool m_bEtherCAT_RT;
     bool m_bEtherCAT_RT_Check;
-    timespec ti_Sleep;
     //SOEM
     int ScanSlave();
     int InitSlave();

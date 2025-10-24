@@ -1,4 +1,4 @@
-#include "../LLSMC/SMbasic/motion_algorithm/motion_planning/motion_planning.h"
+#include "../LLSMC/SoftMotion/motion_algorithm/motion_planning/motion_planning.h"
 #define _POSIX_C_SOURCE 199309L
 #include <time.h>
 #include <stdint.h>

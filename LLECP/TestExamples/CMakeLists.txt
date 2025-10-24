@@ -8,6 +8,7 @@ foreach(EXAMPLE
     RT_Script     
     CIA402Axis
     EtherCATMaster
+    SoftMotion
     motion_algorithm
     )
 endforeach()

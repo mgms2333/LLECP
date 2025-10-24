@@ -1,6 +1,6 @@
 #pragma once
 #include<vector>
-#include"../../CIA402Axis/CIA402Axis.h"
+#include"../CIA402Axis/CIA402Axis.h"
 class SoftMotion
 {
 private:

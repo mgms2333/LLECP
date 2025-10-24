@@ -4,3 +4,4 @@ project(hrsmc LANGUAGES CXX)
 
 add_subdirectory(CIA402Axis)
 add_subdirectory(SMbasic)
+add_subdirectory(SoftMotion)

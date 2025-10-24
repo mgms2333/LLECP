@@ -1,6 +1,6 @@
 #ifndef SMbasic_H
 #define SMbasic_H
-#include"SoftMotion/SoftMotion.h"
+#include"../SoftMotion/SoftMotion.h"
 #include"SMbasicErrorCode.h"
 #include"SMbasicDef.h"
 class SMbasic

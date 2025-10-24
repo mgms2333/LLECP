@@ -21,6 +21,7 @@ target_link_libraries(LLECP PUBLIC
     soem
     SMbasic
     pthread 
+    SoftMotion
     EtherCATMaster
 )
 
@@ -29,4 +30,5 @@ target_include_directories(LLECP PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/CIA402Axis
     ${CMAKE_CURRENT_SOURCE_DIR}/SMbasic
+     ${CMAKE_CURRENT_SOURCE_DIR}/SoftMotion
 )

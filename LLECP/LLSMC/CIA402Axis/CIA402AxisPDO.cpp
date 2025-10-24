@@ -156,7 +156,7 @@ int CIA402Axis::SoftMotion_PDO_ReadErrorCode(uint16_t& ErrorCode)
 {
     ErrorCode = stSoftMotion.stSoftMotionPDO.ErrorCode;
 }
-int CIA402Axis::SoftMotion_PDO_ReadActualPosition(int32_t& ActualPosition)
+int CIA402Axis:: SoftMotion_PDO_ReadActualPosition(int32_t& ActualPosition)
 {
     ActualPosition = stSoftMotion.stSoftMotionPDO.ActualPosition;
 }

@@ -38,10 +38,10 @@ void MC_PowerOn::operator()(CIA402Axis* axis,bool Enabel,bool &bBusy,bool &bDone
 
 void MC_PowerOn::Execute()
 {
-    //uint16_t nControlWord = 0;
+    uint16_t nControlWord = 0;
     uint16_t nStatusWord = 0;
     m_pCIA402Axis->SoftMotion_PDO_ReadStatusWord(nStatusWord);
-    //m_pCIA402Axis->SoftMotion_PDO_ReadControlword(nControlWord);
+    m_pCIA402Axis->SoftMotion_PDO_ReadControlword(nControlWord);
     m_bBusy = false;
     m_bError = false;
     m_bDone = false;
@@ -100,7 +100,6 @@ void MC_PowerOn::Execute()
                 }
                 //初始化控制字
                 m_pCIA402Axis->SoftMotion_PDO_SetControlword(en_ControlWord_Init);
-                //m_pCIA402Axis->SoftMotion_PDO_ReadControlword(nControlWord);
                 m_fsPowerOn = StartPowerOn;
                 m_bBusy = true;
                 m_Timer.Ton(false, SMC_TIME_OUT);
@@ -108,17 +107,16 @@ void MC_PowerOn::Execute()
             }
             break;
         case StartPowerOn:
-            m_pCIA402Axis->SoftMotion_PDO_SetControlword(en_ControlWord_ev | en_ControlWord_qs);
+            m_pCIA402Axis->SoftMotion_PDO_SetControlword(nControlWord | en_ControlWord_ev | en_ControlWord_qs);
             m_fsPowerOn = PowerOning_0x06;
             m_bBusy = true;
             break;
         case PowerOning_0x06:
-            m_pCIA402Axis->SoftMotion_PDO_SetControlword(en_ControlWord_ev | en_ControlWord_qs);
             m_bBusy = true;
             unStatuBit = en_StatusWord_qs | en_StatusWord_rtso;
             if ((nStatusWord & unStatuBit) == unStatuBit)
             {
-                m_pCIA402Axis->SoftMotion_PDO_SetControlword(en_ControlWord_ev | en_ControlWord_qs | en_ControlWord_so);
+                m_pCIA402Axis->SoftMotion_PDO_SetControlword(nControlWord | en_ControlWord_ev | en_ControlWord_qs | en_ControlWord_so);
                 m_fsPowerOn = PowerOning_0x07;
                 break;
             }
@@ -135,12 +133,11 @@ void MC_PowerOn::Execute()
             }
             break;
         case PowerOning_0x07:
-            m_pCIA402Axis->SoftMotion_PDO_SetControlword(en_ControlWord_ev | en_ControlWord_qs | en_ControlWord_so);
             m_bBusy = true;
             unStatuBit = en_StatusWord_qs | en_StatusWord_rtso | en_StatusWord_so;
             if ((nStatusWord & unStatuBit) == unStatuBit)
             {
-                m_pCIA402Axis->SoftMotion_PDO_SetControlword(en_ControlWord_ev | en_ControlWord_qs | en_ControlWord_so | en_ControlWord_eo);
+                m_pCIA402Axis->SoftMotion_PDO_SetControlword(nControlWord | en_ControlWord_ev | en_ControlWord_qs | en_ControlWord_so | en_ControlWord_eo);
                 m_fsPowerOn = PowerOning_0x0F;
                 break;
             }
@@ -157,7 +154,6 @@ void MC_PowerOn::Execute()
             }
             break;
         case PowerOning_0x0F:
-            m_pCIA402Axis->SoftMotion_PDO_SetControlword(en_ControlWord_ev | en_ControlWord_qs | en_ControlWord_so | en_ControlWord_eo);
             m_bBusy = true;
             unStatuBit = en_StatusWord_qs | en_StatusWord_rtso | en_StatusWord_so | en_StatusWord_oe;
             if ((nStatusWord & unStatuBit) == unStatuBit)

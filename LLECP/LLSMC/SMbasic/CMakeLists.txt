@@ -1,13 +1,9 @@
 
-add_subdirectory(motion_algorithm)
-
 set(SM_HEADER_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/AxisConfig"
     "${CMAKE_CURRENT_SOURCE_DIR}/AxisControl"
     "${CMAKE_CURRENT_SOURCE_DIR}/AxisMovement"
     "${CMAKE_CURRENT_SOURCE_DIR}/AxisRead"
-    "${CMAKE_CURRENT_SOURCE_DIR}/SoftMotion"
-    "${CMAKE_CURRENT_SOURCE_DIR}/motion_algorithm"
 )
 
 set(SM_PRECOMPILED_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/SMbasic_stdafx.h")
@@ -28,7 +24,6 @@ file(GLOB_RECURSE AXISCONTROL_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AxisControl/*
 file(GLOB_RECURSE AXISMOVEMENT_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AxisMovement/*.cpp")
 file(GLOB_RECURSE AXISREAD_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AxisRead/*.cpp")
 file(GLOB_RECURSE AXISCONFIG_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/AxixConfig/*.cpp")
-file(GLOB_RECURSE SOFTMOTION_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/SoftMotion/*.cpp")
 
 add_library(SMbasic SHARED
     SMbasic.cpp
@@ -36,7 +31,6 @@ add_library(SMbasic SHARED
     ${AXISMOVEMENT_SOURCES}
     ${AXISREAD_SOURCES}
     ${AXISCONFIG_SOURCES}
-    ${SOFTMOTION_SOURCES}
 )
 
 target_include_directories(SMbasic PUBLIC
@@ -48,4 +42,4 @@ set_target_properties(SMbasic PROPERTIES
     CXX_STANDARD_REQUIRED ON
 )
 
-target_link_libraries(SMbasic PUBLIC CIA402Axis motion_algorithm)
+target_link_libraries(SMbasic PUBLIC CIA402Axis)

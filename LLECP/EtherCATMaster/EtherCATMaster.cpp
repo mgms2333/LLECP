@@ -1,4 +1,22 @@
 #include"EtherCATMaster.h"
+void timespecInc(const struct timespec &start,struct timespec &tick, long nsec)
+{
+    long lIncnsec = nsec%NSEC_PER_SECOND;
+    long lIncsec = nsec/NSEC_PER_SECOND;
+    tick.tv_nsec = start.tv_nsec+lIncnsec;
+    tick.tv_sec = start.tv_sec+lIncsec;
+    while (tick.tv_nsec >= NSEC_PER_SECOND)
+    {
+      tick.tv_nsec -= NSEC_PER_SECOND;
+      tick.tv_sec++;
+    }
+}
+void timespecDiff(const struct timespec &start,const struct timespec &end, long& nsec, long& usec)
+{
+    nsec=(end.tv_sec*NSEC_PER_SECOND+end.tv_nsec) - 
+                     (start.tv_sec*NSEC_PER_SECOND+start.tv_nsec);
+    usec = nsec/NSEC_PER_USECOND;
+}
 
 EtherCATMaster::EtherCATMaster(uint8_t nMasterIndex)
 {
@@ -8,11 +26,8 @@ EtherCATMaster::EtherCATMaster(uint8_t nMasterIndex)
     m_fCycle = 1.0;
     m_bIsSimulation;
     m_sNetWork = "enp2s0";
-    ti_Sleep.tv_sec = 0;
-    ti_Sleep.tv_nsec = m_fCycle*1000000;
 
     m_bEtherCAT_RT = false;
-    m_bEtherCAT_RT_Check = false;
 }
 
 EtherCATMaster::~EtherCATMaster()
@@ -54,19 +69,69 @@ int EtherCATMaster::CloseMaster()
 int EtherCATMaster::InitRT_Thread()
 {
     m_bEtherCAT_RT = true;
-    m_bEtherCAT_RT_Check = true;
       /* create process data thread */
     CreateRT_Thread(&thEtherCAT_RT,&EtherCATMaster::EtherCAT_RT);
-      /* create thread to handle slave error handling in OP */
-    //CreateRT_Thread(&thEtherCAT_RT_Check,&EtherCATMaster::EtherCAT_RT_Check);
     return 0;
 }
 
  void EtherCATMaster::EtherCAT_RT()
  {
+    long period = m_fCycle* 1000*1000;
+    long lastPeriod = period;
+    struct timespec startTime={0};
+    struct timespec tick={0};
+    struct timespec lastTime={0};
+    struct timespec curTime={0};
+    // 当前周期总线循环时间-微秒
+    long nCurCycleTime_USEC = 0;
+    // 当前周期总线循环时间-纳秒
+    long nCurCycleTime_NSEC = 0;
+    // 获取开始时间
+    clock_gettime(CLOCK_MONOTONIC, &startTime);  //得到开始运行时的时间
+    tick = startTime;
+    unsigned long ulCNT=0;
+    long lNextTime = 0;
+    long lUseTime = 0;
+    clock_gettime(CLOCK_MONOTONIC, &curTime);
+    // 保存当前时间
+    lastTime = curTime;
     printf("RunEtherCAT_RT start\n");
     while (true)
     {
+      // 总线循环次数
+      ulCNT++;
+      // EtherCAT总线收发数据循环周期,单位：ns
+      period = m_fCycle * 1000 * 1000; 
+      //如果周期发生变化，重新计算基准时间
+      if (lastPeriod != period)
+      {
+          // 获取当就时间作为新的基准
+          clock_gettime(CLOCK_MONOTONIC, &startTime);
+          tick = startTime;
+          ulCNT = 1;// 重登计数器
+      }
+      lastPeriod = period;
+      // 计算循环时间
+      lNextTime = ulCNT * period;
+      // 计算时间差
+      timespecInc(startTime, tick, lNextTime);
+      // 基于绝对时钟睡眠，保证不受ethercat数据收发影响
+      clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &tick, NULL);  
+      // 获取当前时间
+      clock_gettime(CLOCK_MONOTONIC, &curTime);
+
+      // 周期漂移补偿
+      lUseTime =  (curTime.tv_sec*NSEC_PER_SECOND+curTime.tv_nsec) - (tick.tv_sec*NSEC_PER_SECOND+tick.tv_nsec);
+      if (lUseTime > 2*period)
+      {
+
+          int64_t skipped = lUseTime / period;
+          ulCNT += skipped;
+      }
+      // 计算实际ethercat周期
+      timespecDiff(lastTime, curTime, nCurCycleTime_NSEC, nCurCycleTime_USEC);
+      // 保存上次时间
+      lastTime = curTime;
       if(m_bEtherCAT_RT && m_ctx.slavecount!=0)
       {
         m_bInOP = true;
@@ -86,22 +151,8 @@ int EtherCATMaster::InitRT_Thread()
       {
          m_v_slave[i]->Slave_RT();
       }
-      osal_monotonic_sleep(&ti_Sleep);
     }
     return;
- }
- void EtherCATMaster::EtherCAT_RT_Check()
- {
-  printf("EtherCAT_RT_Check start\n");
-    while (true)
-    {
-      if(m_bEtherCAT_RT_Check)
-      {
-
-      }
-      osal_monotonic_sleep(&ti_Sleep);
-    }
-    return; 
  }
 
  int EtherCATMaster::ScanSlave()
