@@ -36,7 +36,11 @@ protected:
 
     //state
     EN_AxisMotionState m_enAxisMotionState;//sm
-    ST_SoftMotionData m_stSoftMotion;
+    //SoftMotion交换数据
+    ST_SoftMotionData m_stSoftMotionEX;
+
+
+    
 
 public:
     //external data
@@ -93,6 +97,7 @@ public:
     CIA402Axis(bool bVirtual);
     ~CIA402Axis();
     int Axis_InitMap(ST_SMCInitMap st_map);
+    int AxisSetAxisID(uint16_t id);
     int AxisSetAxisState(EN_AxisMotionState enAxisMotionState);
     EN_AxisMotionState AxisReadAxisState();
     bool AxisCheckError(int& nErrorID);
@@ -173,6 +178,11 @@ public:
     int Axis_SetControlCycle(double dControlCycle);
     //驱动赋错误码
     int Axis_SetDriveErrorCode(int ErrorCode);
+
+
+
+
+    int Axis_SetTargetPosition(double TargetPosition);
 
 protected:
     //轴的实时函数

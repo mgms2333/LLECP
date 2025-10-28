@@ -14,4 +14,4 @@ set_target_properties(SoftMotion PROPERTIES
     CXX_STANDARD_REQUIRED ON
 )
 
-target_link_libraries(SoftMotion PUBLIC motion_algorithm)
+target_link_libraries(SoftMotion PUBLIC motion_algorithm CIA402Axis)

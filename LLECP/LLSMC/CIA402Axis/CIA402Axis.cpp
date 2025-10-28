@@ -26,7 +26,11 @@ int CIA402Axis::Axis_InitMap(ST_SMCInitMap st_map)
     int32_t s = *m_st_map.pActualPosition;
     return AEC_SUCCESSED;
 }
-
+int CIA402Axis::AxisSetAxisID(uint16_t id)
+{
+    m_nAxisID = id;
+    return AEC_SUCCESSED;
+}
 int CIA402Axis::AxisSetAxisState(EN_AxisMotionState enAxisMotionState)
 {
     m_enAxisMotionState = enAxisMotionState;
@@ -50,16 +54,21 @@ bool CIA402Axis::AxisCheckError()
 
 int CIA402Axis::SoftMotion_PushMotionUint2SoftMotion(const ST_MotionUint STMotionUint)
 {
-    m_stSoftMotion.vMotionUint.push_back(STMotionUint);
+    //立即中断当前运动，并开始新运动捏
+    if(EN_BufferMode::enAborting == STMotionUint.BufferMode)
+    {
+        m_stSoftMotionEX.vMotionUint.clear();
+    }
+    m_stSoftMotionEX.vMotionUint.push_back(STMotionUint);
     return AEC_SUCCESSED;
 }
 
 int CIA402Axis::SoftMotion_GetMotionUintFromSoftMotion(ST_MotionUint& stMotionUint)
 {
-    int res = m_stSoftMotion.vMotionUint.size();
+    int res = m_stSoftMotionEX.vMotionUint.size();
     if(res > 0 )
     {
-        stMotionUint = m_stSoftMotion.vMotionUint[0];
+        stMotionUint = m_stSoftMotionEX.vMotionUint[0];
     }
     return res;
 }

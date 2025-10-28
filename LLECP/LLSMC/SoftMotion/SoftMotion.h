@@ -2,12 +2,18 @@
 #include<vector>
 #include"../CIA402Axis/CIA402Axis.h"
 #include"motion_algorithm/motion_planning/motion_planning.h"
+#define MaxSnap 20000000
+
+struct SoftMotionPlanParams;
+
+
 class SoftMotion
 {
 protected:
     std::vector<CIA402Axis*>m_v_Axis;
     uint16_t nAxisCount;
-
+    double m_dSoftMotionCycle;
+    std::vector<SoftMotionPlanParams> m_vSoftMotionPlanParams;
 protected:
     void PDOsynchronization();
     void AxisRealTime();
@@ -17,6 +23,7 @@ public:
     SoftMotion(std::vector<CIA402Axis*> v_Axis);
     ~SoftMotion();
     void SoftMotionRun();
+    int SetSoftMotionCycle(double dCycle);
 
 // ===== 写入（RxPDO） =====
     int SoftMotion_PDO_SetControlword(CIA402Axis* Axis_REF,uint16_t Controlword);
@@ -42,4 +49,15 @@ public:
     int SoftMotion_PDO_ReadTargetVelocity(CIA402Axis* Axis_REF,int32_t& TargetVelocity);
     int SoftMotion_PDO_ReadTargetTorque(CIA402Axis* Axis_REF,int16_t& TargetTorque);
     int SoftMotion_PDO_ReadTargetModesOfOperation(CIA402Axis* Axis_REF,uint8_t& mode);
+};
+
+
+struct SoftMotionPlanParams
+{
+    //规划参数
+    ST_PlanParams stActParam;
+    ST_PlanData trackData;
+
+    //当前运动帧参数
+    ST_InterParams stInterData;
 };

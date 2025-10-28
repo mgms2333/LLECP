@@ -11,6 +11,7 @@ private:
     EN_Direction m_enDirection;
     EN_BufferMode m_enBufferMode;
     ST_MotionUint m_MotionUint;
+    ST_MotionUint m_MotionUint_New;
 
 
 public:

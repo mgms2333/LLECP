@@ -18,14 +18,14 @@ void MC_MoveAbsolute::operator()(CIA402Axis* axis,bool bExecute,double dPosition
 
     m_pCIA402Axis                                   = axis;
     m_bExecute                                      = bExecute;
-    m_MotionUint.PlanningMotionParam.pos            = dPosition;
-    m_MotionUint.PlanningMotionParam.vel            = dVelocity;
-    m_MotionUint.PlanningMotionParam.acc            = dAcceleration;
-    m_MotionUint.PlanningMotionParam.dec            = dDeceleration;
-    m_MotionUint.PlanningMotionParam.jerk           = dJerk;
-    m_MotionUint.PlanningMotionParam.Direction      = enDirection;
-    m_MotionUint.BufferMode                         = enBufferMode;
-    m_MotionUint.fbID                               = this;
+    m_MotionUint_New.PlanningMotionParam.pos            = dPosition;
+    m_MotionUint_New.PlanningMotionParam.vel            = dVelocity;
+    m_MotionUint_New.PlanningMotionParam.acc            = dAcceleration;
+    m_MotionUint_New.PlanningMotionParam.dec            = dDeceleration;
+    m_MotionUint_New.PlanningMotionParam.jerk           = dJerk;
+    m_MotionUint_New.PlanningMotionParam.Direction      = enDirection;
+    m_MotionUint_New.BufferMode                         = enBufferMode;
+    m_MotionUint_New.fbID                               = this;
     this->Execute();
     bDone = m_bDone;
     bBusy = m_bBusy;
@@ -73,6 +73,13 @@ void MC_MoveAbsolute::Execute()
     //上升沿push
     if(m_Timer.R_TRIG(m_bExecute))
     {
+        m_MotionUint = m_MotionUint_New;
+        m_pCIA402Axis->SoftMotion_PushMotionUint2SoftMotion(m_MotionUint);
+    }
+    //参数变更push
+    if(m_MotionUint.PlanningMotionParam!=m_MotionUint_New.PlanningMotionParam)
+    {
+        m_MotionUint = m_MotionUint_New;
         m_pCIA402Axis->SoftMotion_PushMotionUint2SoftMotion(m_MotionUint);
     }
     ST_MotionUint FirstMotionUint;

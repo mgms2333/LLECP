@@ -64,5 +64,5 @@ int CIA402Axis::Axis_SetControlCycle(double dControlCycle)
 
 int CIA402Axis::Axis_SetDriveErrorCode(int ErrorCode)
 {
-    m_nDriveErrorCode = ErrorCode;
+    m_nErrorCode = ErrorCode;
 }

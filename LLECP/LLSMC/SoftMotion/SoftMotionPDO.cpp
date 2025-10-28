@@ -3,99 +3,99 @@
 // ===== 写入（RxPDO） =====
 int SoftMotion::SoftMotion_PDO_SetControlword(CIA402Axis* Axis_REF,uint16_t Controlword)
 {
-    Axis_REF->m_stSoftMotion.stSoftMotionPDO.Controlword = Controlword;
+    Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.Controlword = Controlword;
     return AEC_SUCCESSED;
 }
 int SoftMotion::SoftMotion_PDO_SetTargetPosition(CIA402Axis* Axis_REF,int32_t TargetPosition)
 {
-    Axis_REF->m_stSoftMotion.stSoftMotionPDO.TargetPosition = TargetPosition;
+    Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.TargetPosition = TargetPosition;
     return AEC_SUCCESSED;
 }
 int SoftMotion::SoftMotion_PDO_SetTargetVelocity(CIA402Axis* Axis_REF,int32_t TargetVelocity)
 {
-    Axis_REF->m_stSoftMotion.stSoftMotionPDO.TargetVelocity = TargetVelocity;
+    Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.TargetVelocity = TargetVelocity;
     return AEC_SUCCESSED;
 }
 int SoftMotion::SoftMotion_PDO_SetTargetTorque(CIA402Axis* Axis_REF,int16_t TargetTorque)
 {
-    Axis_REF->m_stSoftMotion.stSoftMotionPDO.TargetTorque = TargetTorque;
+    Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.TargetTorque = TargetTorque;
     return AEC_SUCCESSED;
 }
 int SoftMotion::SoftMotion_PDO_SetModesOfOperation(CIA402Axis* Axis_REF,EN_ModesOfOperation mode)
 {
-    Axis_REF->m_stSoftMotion.stSoftMotionPDO.TargetModesOfOperation = mode;
+    Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.TargetModesOfOperation = mode;
     return AEC_SUCCESSED;
 }
 int SoftMotion::SoftMotion_PDO_SetDigitalOutputs(CIA402Axis* Axis_REF,uint32_t DigitalOutputs)
 {
-    Axis_REF->m_stSoftMotion.stSoftMotionPDO.DigitalOutputs = DigitalOutputs;
+    Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.DigitalOutputs = DigitalOutputs;
     return AEC_SUCCESSED;
 }
 
 int SoftMotion::SoftMotion_PDO_ReadControlword(CIA402Axis* Axis_REF,uint16_t& Controlword)
 {
-    Controlword = Axis_REF->m_stSoftMotion.stSoftMotionPDO.Controlword;
+    Controlword = Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.Controlword;
     return AEC_SUCCESSED;
 }
 int SoftMotion::SoftMotion_PDO_ReadTargetPosition(CIA402Axis* Axis_REF,int32_t& TargetPosition)
 {
-    TargetPosition = Axis_REF->m_stSoftMotion.stSoftMotionPDO.TargetPosition;
+    TargetPosition = Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.TargetPosition;
     return AEC_SUCCESSED;
 }
 int SoftMotion::SoftMotion_PDO_ReadTargetVelocity(CIA402Axis* Axis_REF,int32_t& TargetVelocity)
 {
-    TargetVelocity = Axis_REF->m_stSoftMotion.stSoftMotionPDO.TargetVelocity;
+    TargetVelocity = Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.TargetVelocity;
     return AEC_SUCCESSED;
 }
 int SoftMotion::SoftMotion_PDO_ReadTargetTorque(CIA402Axis* Axis_REF,int16_t& TargetTorque)
 {
-    TargetTorque = Axis_REF->m_stSoftMotion.stSoftMotionPDO.TargetTorque;
+    TargetTorque = Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.TargetTorque;
     return AEC_SUCCESSED;
 }
 int SoftMotion::SoftMotion_PDO_ReadTargetModesOfOperation(CIA402Axis* Axis_REF,uint8_t& mode)
 {
-    mode = Axis_REF->m_stSoftMotion.stSoftMotionPDO.TargetModesOfOperation;
+    mode = Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.TargetModesOfOperation;
     return AEC_SUCCESSED;
 }
 
 // ===== 读取（TxPDO） =====
 int SoftMotion::SoftMotion_PDO_ReadStatusWord(CIA402Axis* Axis_REF,uint16_t& StatusWord)
 {
-    StatusWord = Axis_REF->m_stSoftMotion.stSoftMotionPDO.StatusWord;
+    StatusWord = Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.StatusWord;
     return AEC_SUCCESSED;
 }
 int SoftMotion::SoftMotion_PDO_ReadErrorCode(CIA402Axis* Axis_REF,uint16_t& ErrorCode)
 {
-    ErrorCode = Axis_REF->m_stSoftMotion.stSoftMotionPDO.ErrorCode;
+    ErrorCode = Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.ErrorCode;
     return AEC_SUCCESSED;
 }
 int SoftMotion::SoftMotion_PDO_ReadActualPosition(CIA402Axis* Axis_REF,int32_t& ActualPosition)
 {
-    ActualPosition = Axis_REF->m_stSoftMotion.stSoftMotionPDO.ActualPosition;
+    ActualPosition = Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.ActualPosition;
     return AEC_SUCCESSED;
 }
 int SoftMotion::SoftMotion_PDO_ReadActualVelocity(CIA402Axis* Axis_REF,int32_t& ActualVelocity)
 {
-    ActualVelocity = Axis_REF->m_stSoftMotion.stSoftMotionPDO.ActualVelocity;
+    ActualVelocity = Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.ActualVelocity;
     return AEC_SUCCESSED;
 }
 int SoftMotion::SoftMotion_PDO_ReadActualTorque(CIA402Axis* Axis_REF,int16_t& ActualTorque)
 {
-    ActualTorque = Axis_REF->m_stSoftMotion.stSoftMotionPDO.ActualTorque;
+    ActualTorque = Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.ActualTorque;
     return AEC_SUCCESSED;
 }
 int SoftMotion::SoftMotion_PDO_ReadModesOfOperation(CIA402Axis* Axis_REF,EN_ModesOfOperation& mode)
 {
-    mode = static_cast<EN_ModesOfOperation>(Axis_REF->m_stSoftMotion.stSoftMotionPDO.ActualModesOfOperation);
+    mode = static_cast<EN_ModesOfOperation>(Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.ActualModesOfOperation);
     return AEC_SUCCESSED;
 }
 int SoftMotion::SoftMotion_PDO_ReadDigitalInputs(CIA402Axis* Axis_REF,uint32_t& inputs)
 {
-    inputs = Axis_REF->m_stSoftMotion.stSoftMotionPDO.DigitalInputs;
+    inputs = Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.DigitalInputs;
     return AEC_SUCCESSED;
 }
 int SoftMotion::SoftMotion_PDO_ReadDigitalOutputs(CIA402Axis* Axis_REF,uint32_t& outputs)
 {
-    outputs = Axis_REF->m_stSoftMotion.stSoftMotionPDO.DigitalOutputs;
+    outputs = Axis_REF->m_stSoftMotionEX.stSoftMotionPDO.DigitalOutputs;
     return AEC_SUCCESSED;
 }
