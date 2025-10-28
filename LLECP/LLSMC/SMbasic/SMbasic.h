@@ -11,6 +11,7 @@ protected:
     SMCTimer m_TimerTimeout;
     bool m_Enabel;
     bool m_bBusy;
+    bool m_bCommandAborted;
     bool m_bDone;
     bool m_bError;
     int m_nErrorID;

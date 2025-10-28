@@ -1,16 +1,22 @@
 #pragma once
 #include<vector>
 #include"../CIA402Axis/CIA402Axis.h"
+#include"motion_algorithm/motion_planning/motion_planning.h"
 class SoftMotion
 {
-private:
+protected:
     std::vector<CIA402Axis*>m_v_Axis;
     uint16_t nAxisCount;
+
+protected:
+    void PDOsynchronization();
+    void AxisRealTime();
+    void SoftMotionPlanner_RT();
+    int AxisMotionPlanner(CIA402Axis* pAxis);
 public:
     SoftMotion(std::vector<CIA402Axis*> v_Axis);
     ~SoftMotion();
     void SoftMotionRun();
-    void PDOsynchronization();
 
 // ===== 写入（RxPDO） =====
     int SoftMotion_PDO_SetControlword(CIA402Axis* Axis_REF,uint16_t Controlword);

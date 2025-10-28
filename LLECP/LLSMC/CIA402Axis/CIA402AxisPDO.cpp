@@ -126,77 +126,77 @@ int CIA402Axis::Axis_PDO_ReadDigitalOutputs(uint32_t& outputs)
 
 int CIA402Axis::SoftMotion_PDO_SetControlword(uint16_t Controlword)
 {
-    stSoftMotion.stSoftMotionPDO.Controlword  = Controlword;
+    m_stSoftMotion.stSoftMotionPDO.Controlword  = Controlword;
 }
 int CIA402Axis::SoftMotion_PDO_SetTargetPosition(int32_t TargetPosition)
 {
-    stSoftMotion.stSoftMotionPDO.TargetPosition  = TargetPosition;
+    m_stSoftMotion.stSoftMotionPDO.TargetPosition  = TargetPosition;
 }
 int CIA402Axis::SoftMotion_PDO_SetTargetVelocity(int32_t TargetVelocity)
 {
-    stSoftMotion.stSoftMotionPDO.TargetVelocity = TargetVelocity;
+    m_stSoftMotion.stSoftMotionPDO.TargetVelocity = TargetVelocity;
 }
 int CIA402Axis::SoftMotion_PDO_SetTargetTorque(int16_t TargetTorque)
 {
-    stSoftMotion.stSoftMotionPDO.TargetTorque = TargetTorque;
+    m_stSoftMotion.stSoftMotionPDO.TargetTorque = TargetTorque;
 }
 int CIA402Axis::SoftMotion_PDO_SetModesOfOperation(EN_ModesOfOperation mode)
 {
-    stSoftMotion.stSoftMotionPDO.TargetModesOfOperation = mode;
+    m_stSoftMotion.stSoftMotionPDO.TargetModesOfOperation = mode;
 }
 int CIA402Axis::SoftMotion_PDO_SetDigitalOutputs(uint32_t DigitalOutputs)
 {
-    stSoftMotion.stSoftMotionPDO.DigitalInputs = DigitalOutputs;
+    m_stSoftMotion.stSoftMotionPDO.DigitalInputs = DigitalOutputs;
 }
 int CIA402Axis::SoftMotion_PDO_ReadStatusWord(uint16_t& StatusWord)
 {
-    StatusWord = stSoftMotion.stSoftMotionPDO.StatusWord;
+    StatusWord = m_stSoftMotion.stSoftMotionPDO.StatusWord;
 }
 int CIA402Axis::SoftMotion_PDO_ReadErrorCode(uint16_t& ErrorCode)
 {
-    ErrorCode = stSoftMotion.stSoftMotionPDO.ErrorCode;
+    ErrorCode = m_stSoftMotion.stSoftMotionPDO.ErrorCode;
 }
 int CIA402Axis:: SoftMotion_PDO_ReadActualPosition(int32_t& ActualPosition)
 {
-    ActualPosition = stSoftMotion.stSoftMotionPDO.ActualPosition;
+    ActualPosition = m_stSoftMotion.stSoftMotionPDO.ActualPosition;
 }
 int CIA402Axis::SoftMotion_PDO_ReadActualVelocity(int32_t& ActualVelocity)
 {
-    ActualVelocity = stSoftMotion.stSoftMotionPDO.ActualVelocity;
+    ActualVelocity = m_stSoftMotion.stSoftMotionPDO.ActualVelocity;
 }
 int CIA402Axis::SoftMotion_PDO_ReadActualTorque(int16_t& ActualTorque)
 {
-    ActualTorque = stSoftMotion.stSoftMotionPDO.ActualTorque;
+    ActualTorque = m_stSoftMotion.stSoftMotionPDO.ActualTorque;
 }
 int CIA402Axis::SoftMotion_PDO_ReadModesOfOperation(EN_ModesOfOperation& mode)
 {
-    mode = static_cast<EN_ModesOfOperation>(stSoftMotion.stSoftMotionPDO.ActualModesOfOperation);
+    mode = static_cast<EN_ModesOfOperation>(m_stSoftMotion.stSoftMotionPDO.ActualModesOfOperation);
 }   
 int CIA402Axis::SoftMotion_PDO_ReadDigitalInputs(uint32_t& inputs)
 {
-    inputs = stSoftMotion.stSoftMotionPDO.DigitalInputs;
+    inputs = m_stSoftMotion.stSoftMotionPDO.DigitalInputs;
 }
 int CIA402Axis::SoftMotion_PDO_ReadDigitalOutputs(uint32_t& outputs)
 {
-    outputs = stSoftMotion.stSoftMotionPDO.DigitalOutputs;
+    outputs = m_stSoftMotion.stSoftMotionPDO.DigitalOutputs;
 }
 int CIA402Axis::SoftMotion_PDO_ReadControlword(uint16_t& Controlword)
 {
-    Controlword = stSoftMotion.stSoftMotionPDO.Controlword;
+    Controlword = m_stSoftMotion.stSoftMotionPDO.Controlword;
 }
 int CIA402Axis::SoftMotion_PDO_ReadTargetPosition(int32_t& TargetPosition)
 {
-    TargetPosition = stSoftMotion.stSoftMotionPDO.TargetPosition;
+    TargetPosition = m_stSoftMotion.stSoftMotionPDO.TargetPosition;
 }
 int CIA402Axis::SoftMotion_PDO_ReadTargetVelocity(int32_t& TargetVelocity)
 {
-    TargetVelocity = stSoftMotion.stSoftMotionPDO.ActualVelocity;
+    TargetVelocity = m_stSoftMotion.stSoftMotionPDO.ActualVelocity;
 }
 int CIA402Axis::SoftMotion_PDO_ReadTargetTorque(int16_t& TargetTorque)
 {
-    TargetTorque = stSoftMotion.stSoftMotionPDO.TargetTorque;
+    TargetTorque = m_stSoftMotion.stSoftMotionPDO.TargetTorque;
 }
 int CIA402Axis::SoftMotion_PDO_ReadTargetModesOfOperation(uint8_t& mode)
 {
-    mode = stSoftMotion.stSoftMotionPDO.TargetModesOfOperation;
+    mode = m_stSoftMotion.stSoftMotionPDO.TargetModesOfOperation;
 }

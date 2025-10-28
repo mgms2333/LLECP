@@ -7,6 +7,7 @@
 #include "AxisControl/MC_InitResetAxis.h"
 #include "AxisControl/MC_PowerOn.h"
 
+#include "AxisMovement/MC_MoveAbsolute.h"
 #include "AxisMovement/MC_SetPosition.h"
 
 #include "AxisRead/MC_ReadActualPosition.h"

@@ -47,3 +47,26 @@ bool CIA402Axis::AxisCheckError()
 {
     return(motionState_errorstop == m_enAxisMotionState);
 }
+
+int CIA402Axis::SoftMotion_PushMotionUint2SoftMotion(const ST_MotionUint STMotionUint)
+{
+    m_stSoftMotion.vMotionUint.push_back(STMotionUint);
+    return AEC_SUCCESSED;
+}
+
+int CIA402Axis::SoftMotion_GetMotionUintFromSoftMotion(ST_MotionUint& stMotionUint)
+{
+    int res = m_stSoftMotion.vMotionUint.size();
+    if(res > 0 )
+    {
+        stMotionUint = m_stSoftMotion.vMotionUint[0];
+    }
+    return res;
+}
+
+
+
+void CIA402Axis::Axis_RT()
+{
+    return;
+}

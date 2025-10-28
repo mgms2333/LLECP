@@ -36,7 +36,7 @@ protected:
 
     //state
     EN_AxisMotionState m_enAxisMotionState;//sm
-    ST_SoftMotionData stSoftMotion;
+    ST_SoftMotionData m_stSoftMotion;
 
 public:
     //external data
@@ -147,6 +147,11 @@ public:
     int SoftMotion_PDO_ReadTargetModesOfOperation(uint8_t& mode);
 
 
+
+    int SoftMotion_PushMotionUint2SoftMotion(const ST_MotionUint STMotionUint);
+    int SoftMotion_GetMotionUintFromSoftMotion(ST_MotionUint& stMotionUint);
+
+
     //Config
     //设置减速比，调用即时生效*******减速比定义：在设置的编码器分辨率下一个编码器分辨率周期下的运动距离*****对于HR机器人应该是360/101
     int Axis_SetGearRatio(double dGearRatio);
@@ -169,7 +174,10 @@ public:
     //驱动赋错误码
     int Axis_SetDriveErrorCode(int ErrorCode);
 
-
+protected:
+    //轴的实时函数
+    void Axis_RT();
+    
 };
 
 

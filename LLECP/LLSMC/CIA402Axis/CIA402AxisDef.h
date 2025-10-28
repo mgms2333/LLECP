@@ -1,5 +1,5 @@
 #pragma once
-
+#include <vector>
 #include <stdint.h> 
 #include <string.h>
 #include<time.h>
@@ -55,7 +55,17 @@ struct ST_SMCInitMap
         pDigitalOutputs = nullptr;
     }
 };
+//规划模式
+enum EN_PlanningMode
+{
+    //0
+    enPlanningModeNull = 0,//无模式
+    enPosition = 1,//位置模式
+    enVelocity = 2,//速度模式
+    enAcceleration = 3, //加速度模式
 
+    enStop = 99 //停止模式
+};
 // 运动方向
 enum EN_Direction
 {
@@ -80,9 +90,34 @@ struct ST_PlanningMotionParam
     double acc;
     double dec;
     double jerk;
+    EN_PlanningMode PlanningMode;
     EN_Direction  Direction;
+    // == 运算符重载
+    bool operator==(const ST_PlanningMotionParam& other) const
+    {
+        auto eq = [](double a, double b) { return std::fabs(a - b) < 1e-9; };
+
+        return eq(pos,  other.pos)  &&
+               eq(vel,  other.vel)  &&
+               eq(acc,  other.acc)  &&
+               eq(dec,  other.dec)  &&
+               eq(jerk, other.jerk) &&
+               (PlanningMode == other.PlanningMode) &&
+               (Direction    == other.Direction);
+    }
+    bool operator!=(const ST_PlanningMotionParam& other) const
+    {
+        return !(*this == other);
+    }
+};
+
+struct ST_MotionUint
+{
+    ST_PlanningMotionParam  PlanningMotionParam;
     EN_BufferMode BufferMode;
     void* fbID;//功能块指针
+    bool bMotion;
+    bool bMotionDone;
 };
 
 
@@ -90,7 +125,7 @@ struct ST_PlanningMotionParam
 struct ST_SoftMotionData
 {
     ST_SMC_PDO_Virtual stSoftMotionPDO;
-    ST_PlanningMotionParam stPlanningMotionParam;
+    std::vector<ST_MotionUint>vMotionUint;
 };
 
 

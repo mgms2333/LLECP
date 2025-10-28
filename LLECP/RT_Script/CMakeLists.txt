@@ -1,5 +1,5 @@
 # 创建一个静态库（也可用 SHARED 变动态库）
-add_library(RT_Script
+add_library(RT_Script SHARED
     RT_Script.cpp
     ScriptVariable.cpp
     RT_ScriptActuator.cpp
