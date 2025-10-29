@@ -3,6 +3,7 @@ add_library(CIA402Axis SHARED
     CIA402Axis.cpp
     CIA402AxisPDO.cpp
     CIA402AxisConfig.cpp
+    CIA402AxisGeneral.cpp
 )
 
 target_include_directories(CIA402Axis PUBLIC

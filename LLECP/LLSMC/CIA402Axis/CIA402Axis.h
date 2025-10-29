@@ -27,7 +27,6 @@ protected:
     ST_SMC_PDO_Virtual m_stPDO_Virtual;
     ST_SMCInitMap m_st_map;
     ST_SMCAxisConfiguration m_stAxisConfiguration;
-    double m_dOverride;
     double m_dControlCycle;//ms
 
     //Data
@@ -58,7 +57,7 @@ public:
     double dSetAcceleration_c;// 修正后加速度
     double dSetJerk_c;        // 修正后跃度
     double dSetCurrent;       // 目标电流/力矩（A 或 %）
-    int    pActualPosition_PDO; // 实际位置（PDO原始值）
+    int    nActualPosition_PDO; // 实际位置（PDO原始值）
     double dActPosition;        // 实际位置（工程单位）
     // --- 实际运动参数 ---
     double dActVelocity;        // 实际速度
@@ -92,7 +91,6 @@ public:
     int nCurrentDirection;
     double dPositive;
     double dNegative;
-    double dOverride;
 public:
     CIA402Axis(bool bVirtual);
     ~CIA402Axis();
@@ -187,7 +185,7 @@ public:
 protected:
     //轴的实时函数
     void Axis_RT();
-    
+    void DataSynchronization();
 };
 
 

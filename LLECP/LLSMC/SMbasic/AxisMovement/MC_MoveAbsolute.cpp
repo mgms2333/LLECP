@@ -44,7 +44,7 @@ void MC_MoveAbsolute::Execute()
     m_nErrorID           = 0;
     
     //状态校验
-    if(EN_AxisMotionState::motionState_errorstop != m_pCIA402Axis->AxisReadAxisState())
+    if(EN_AxisMotionState::motionState_errorstop == m_pCIA402Axis->AxisReadAxisState())
     {
         m_bError            = true;
         m_pCIA402Axis->AxisCheckError(m_nErrorID);

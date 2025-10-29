@@ -47,9 +47,10 @@ int RT_ScripTest()
 
 MC_PowerOn fbMC_PowerOn;
 MC_InitResetAxis fbMC_InitResetAxis;
+MC_MoveAbsolute fbMoveAbsolute;
 SoftMotion* pSoftMotion;
 std::vector<CIA402Axis*> v_Axis;
-bool Enabel,bBusy,bDone, bError;int nErrorID;
+bool Enabel,bBusy,bDone, bError,bCommandAborted;int nErrorID;
 std::thread RT_Thread;
 timespec ti_Sleep;
 int TEST()
@@ -59,6 +60,7 @@ int TEST()
     pMaster->StartMaster();
     pMaster->ConstructionCIA402AxisVec(&v_Axis);
     pSoftMotion = new SoftMotion(v_Axis);
+    pSoftMotion->SetSoftMotionCycle(0.001);
     struct timespec ts{0, 1000000};   // 0 秒 + 1 000 000 纳秒 = 1 毫秒
     printf("InitReset\n");
     fbMC_InitResetAxis(v_Axis[0],false,bBusy,bDone,bError,nErrorID);
@@ -79,7 +81,10 @@ int TEST()
         fbMC_PowerOn(v_Axis[0],true,bBusy,bDone,bError,nErrorID);
         if(bDone)
         {
-             break;
+            int32_t pos = v_Axis[0]->dActPosition;
+            fbMoveAbsolute(v_Axis[0],false,pos+2,1,10,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
+            fbMoveAbsolute(v_Axis[0],true,pos+2,1,10,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
+            break;
         }
         pSoftMotion->SoftMotionRun();
         nanosleep(&ts, nullptr);
@@ -87,10 +92,9 @@ int TEST()
     printf("Start\n");
     while (true)
     {
-        int32_t pos = 0;
-        pSoftMotion->SoftMotion_PDO_ReadActualPosition(v_Axis[0],pos);
-        pSoftMotion->SoftMotion_PDO_SetTargetPosition(v_Axis[0],pos+500);
+        
         pSoftMotion->SoftMotionRun();
+        //printf("pos:%f\n",v_Axis[0]->dActPosition);
         nanosleep(&ts, nullptr);
     }
 

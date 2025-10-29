@@ -149,13 +149,13 @@ struct ST_SMCAxisConfiguration
     double dNegative;
     ST_SMCAxisConfiguration()
     {
-        dGearRatio = 0;
-        nEncodeRatio = 0;
-        nEncodeDirection = 0;
+        dGearRatio = 1;
+        nEncodeRatio = 131072;
+        nEncodeDirection = 1;
         nEncodeHomePos = 0;
-        dCurrentScales = 0;
-        nCurrentDirection = 0;
-        dTorqueFeedforwardScale =0;
+        dCurrentScales = 1;
+        nCurrentDirection = 1;
+        dTorqueFeedforwardScale =1;
         dNegative = 0;
         dPositive = 0;
     }

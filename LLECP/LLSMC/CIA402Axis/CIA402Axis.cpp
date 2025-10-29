@@ -54,11 +54,12 @@ bool CIA402Axis::AxisCheckError()
 
 int CIA402Axis::SoftMotion_PushMotionUint2SoftMotion(const ST_MotionUint STMotionUint)
 {
-    //立即中断当前运动，并开始新运动捏
+    //立即中断当前运动，并开始新运动
     if(EN_BufferMode::enAborting == STMotionUint.BufferMode)
     {
         m_stSoftMotionEX.vMotionUint.clear();
     }
+    //缓存点位
     m_stSoftMotionEX.vMotionUint.push_back(STMotionUint);
     return AEC_SUCCESSED;
 }
@@ -77,5 +78,39 @@ int CIA402Axis::SoftMotion_GetMotionUintFromSoftMotion(ST_MotionUint& stMotionUi
 
 void CIA402Axis::Axis_RT()
 {
+    DataSynchronization();
+    return;
+}
+
+void CIA402Axis::DataSynchronization()
+{
+    //PDO
+    nCmdControlWord = *m_st_map.pControlword;
+    nActStatusWord = *m_st_map.pStatusWord;
+    TargetPosition_PDO = *m_st_map.pTargetPosition;
+    nActualPosition_PDO = *m_st_map.pActualPosition;
+    nCmdModeOpration = *m_st_map.pTargetModesOfOperation;
+    nActModeOpration = *m_st_map.pActualModesOfOperation;
+
+
+    //运动数据
+    dSetPosition = m_stAxisMotionData_now.dTarPos = m_stAxisConfiguration.nEncodeDirection * 
+                        double(TargetPosition_PDO - m_stAxisConfiguration.nEncodeHomePos) / 
+                        double(m_stAxisConfiguration.nEncodeRatio * m_stAxisConfiguration.dGearRatio);
+    dActPosition = m_stAxisMotionData_now.dTarPos = m_stAxisConfiguration.nEncodeDirection * 
+                                        double(*m_st_map.pActualPosition - m_stAxisConfiguration.nEncodeHomePos) / 
+                                        double(m_stAxisConfiguration.nEncodeRatio * m_stAxisConfiguration.dGearRatio);
+    nAxisErrorID = m_nErrorCode;
+    //配置
+    bVirtual = m_bVirtual;
+    enAxisMotionState = m_enAxisMotionState;
+    dGearRatio = m_stAxisConfiguration.dGearRatio;
+    nEncodeRatio = m_stAxisConfiguration.nEncodeRatio;
+    nEncodeDirection = m_stAxisConfiguration.nEncodeDirection;
+    nEncodeHomePos = m_stAxisConfiguration.nEncodeHomePos;
+    dCurrentScales = m_stAxisConfiguration.dCurrentScales;
+    dTorqueFeedforwardScale = m_stAxisConfiguration.dTorqueFeedforwardScale;
+    dVelocityScale = m_stAxisConfiguration.dVelocityScale;
+    nCurrentDirection = m_stAxisConfiguration.nCurrentDirection;
     return;
 }
