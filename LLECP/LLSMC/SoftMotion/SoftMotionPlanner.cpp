@@ -16,6 +16,7 @@ int SoftMotion::AxisMotionPlanner(CIA402Axis* pAxis)
             &&(pAxis->AxisReadAxisState()!=EN_AxisMotionState::motionState_continuous_motion)
             &&(pAxis->AxisReadAxisState()!=EN_AxisMotionState::motionState_synchronized_motion))
             {
+                pAxis->m_stSoftMotionEX.vMotionUint.clear();
                 return AEC_SUCCESSED;
             }
     if(pAxis->m_stSoftMotionEX.vMotionUint.size() == 0)

@@ -1,7 +1,6 @@
 add_subdirectory(motion_algorithm)
 add_library(SoftMotion SHARED
     SoftMotion.cpp
-    SoftMotionPDO.cpp
     SoftMotionPlanner.cpp
 )
 

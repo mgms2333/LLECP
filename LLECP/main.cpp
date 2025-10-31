@@ -81,9 +81,10 @@ int TEST()
         fbMC_PowerOn(v_Axis[0],true,bBusy,bDone,bError,nErrorID);
         if(bDone)
         {
-            int32_t pos = v_Axis[0]->dActPosition;
-            fbMoveAbsolute(v_Axis[0],false,pos+2,1,10,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
-            fbMoveAbsolute(v_Axis[0],true,pos+2,1,10,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
+            double pos = v_Axis[0]->dActPosition;
+            printf("MovePos:%f\n",pos+2);
+            fbMoveAbsolute(v_Axis[0],false,pos+10,1,10,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
+            fbMoveAbsolute(v_Axis[0],true,pos+10,1,10,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
             break;
         }
         pSoftMotion->SoftMotionRun();

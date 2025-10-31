@@ -2,19 +2,19 @@
 #define CIA402AXISDEF_H   // 定义宏，防止重复包含
 #include"CIA402AxisDef.h"
 #include"AxisErrorCode.h"
-#define Axis_PDO_CONTROLWORD  *(m_st_map.pControlword)
-#define Axis_PDO_STATUSWORD  *(m_st_map.pStatusWord)
-#define Axis_PDO_TARGETPOSITION  *(m_st_map.pTargetPosition)
-#define Axis_PDO_ACTUALPOSITION  *(m_st_map.pActualPosition)
-#define Axis_PDO_TARGETTORQUE  *(m_st_map.pTargetTorque)
-#define Axis_PDO_ACTUALTORQUE  *(m_st_map.pActualTorque)
-#define Axis_PDO_TARGETVELOCITY *(m_st_map.pTargetVelocity)
-#define Axis_PDO_ACTVELOCITY  *(m_st_map.pActualVelocity)
-#define Axis_PDO_TARGETMODESOFOPERATION  *(m_st_map.pTargetModesOfOperation)
-#define Axis_PDO_ACTUALMODESOFOPERATION  *(m_st_map.pActualModesOfOperation)
-#define Axis_PDO_ERRORCODE  *(m_st_map.pErrorCode)
-#define Axis_PDO_DIGITALOUTPUTS *(m_st_map.pDigitalOutputs) 
-#define Axis_PDO_DIGITALINPUTS *(m_st_map.pDigitalInputs)
+#define PDO_CONTROLWORD  *(m_st_map.pControlword)
+#define PDO_STATUSWORD  *(m_st_map.pStatusWord)
+#define PDO_TARGETPOSITION  *(m_st_map.pTargetPosition)
+#define PDO_ACTUALPOSITION  *(m_st_map.pActualPosition)
+#define PDO_TARGETTORQUE  *(m_st_map.pTargetTorque)
+#define PDO_ACTUALTORQUE  *(m_st_map.pActualTorque)
+#define PDO_TARGETVELOCITY *(m_st_map.pTargetVelocity)
+#define PDO_ACTVELOCITY  *(m_st_map.pActualVelocity)
+#define PDO_TARGETMODESOFOPERATION  *(m_st_map.pTargetModesOfOperation)
+#define PDO_ACTUALMODESOFOPERATION  *(m_st_map.pActualModesOfOperation)
+#define PDO_ERRORCODE  *(m_st_map.pErrorCode)
+#define PDO_DIGITALOUTPUTS *(m_st_map.pDigitalOutputs) 
+#define PDO_DIGITALINPUTS *(m_st_map.pDigitalInputs)
 class SoftMotion;
 
 class CIA402Axis 
@@ -25,6 +25,8 @@ protected:
     bool m_bVirtual;
     uint32_t m_nAxisID;
     ST_SMC_PDO_Virtual m_stPDO_Virtual;
+    //pdo同步
+    ST_SMC_PDO_Virtual m_stMirrorPDO;
     ST_SMCInitMap m_st_map;
     ST_SMCAxisConfiguration m_stAxisConfiguration;
     double m_dControlCycle;//ms
@@ -100,26 +102,52 @@ public:
     EN_AxisMotionState AxisReadAxisState();
     bool AxisCheckError(int& nErrorID);
     bool AxisCheckError();
-    //softmotion直接控制pdo
+
+    //PDO镜像直接控制pdo
+
+    void PDOsynchronization();
     // ===== 写入（RxPDO） =====
+    int PDO_SetControlword(uint16_t Controlword);
+    int PDO_SetTargetPosition(int32_t TargetPosition);
+    int PDO_SetTargetVelocity(int32_t TargetVelocity);
+    int PDO_SetTargetTorque(int16_t TargetTorque);
+    int PDO_SetModesOfOperation(uint8_t mode);
+    int PDO_SetDigitalOutputs(uint32_t DigitalOutputs);
+
+    // ===== 读取（TxPDO） =====
+    int PDO_ReadStatusWord(uint16_t& StatusWord);
+    int PDO_ReadErrorCode(uint16_t& ErrorCode);
+    int PDO_ReadActualPosition(int32_t& ActualPosition);
+    int PDO_ReadActualVelocity(int32_t& ActualVelocity);
+    int PDO_ReadActualTorque(int16_t& ActualTorque);
+    int PDO_ReadModesOfOperation(uint8_t& mode);
+    int PDO_ReadDigitalInputs(uint32_t& inputs);
+    int PDO_ReadDigitalOutputs(uint32_t& outputs);
+
+    // ===== 读回目标值缓存或虚拟轴调试 =====
+    int PDO_ReadControlword(uint16_t& Controlword);
+    int PDO_ReadTargetPosition(int32_t& TargetPosition);
+    int PDO_ReadTargetVelocity(int32_t& TargetVelocity);
+    int PDO_ReadTargetTorque(int16_t& TargetTorque);
+    int PDO_ReadTargetModesOfOperation(uint8_t& mode);
+
+
+
+    //MC功能块控制
     int Axis_PDO_SetControlword(uint16_t Controlword);
     int Axis_PDO_SetTargetPosition(int32_t TargetPosition);
     int Axis_PDO_SetTargetVelocity(int32_t TargetVelocity);
     int Axis_PDO_SetTargetTorque(int16_t TargetTorque);
-    int Axis_PDO_SetModesOfOperation(uint8_t mode);
+    int Axis_PDO_SetModesOfOperation(EN_ModesOfOperation mode);
     int Axis_PDO_SetDigitalOutputs(uint32_t DigitalOutputs);
-
-    // ===== 读取（TxPDO） =====
     int Axis_PDO_ReadStatusWord(uint16_t& StatusWord);
     int Axis_PDO_ReadErrorCode(uint16_t& ErrorCode);
     int Axis_PDO_ReadActualPosition(int32_t& ActualPosition);
     int Axis_PDO_ReadActualVelocity(int32_t& ActualVelocity);
     int Axis_PDO_ReadActualTorque(int16_t& ActualTorque);
-    int Axis_PDO_ReadModesOfOperation(uint8_t& mode);
+    int Axis_PDO_ReadModesOfOperation(EN_ModesOfOperation& mode);
     int Axis_PDO_ReadDigitalInputs(uint32_t& inputs);
     int Axis_PDO_ReadDigitalOutputs(uint32_t& outputs);
-
-    // ===== 读回目标值缓存或虚拟轴调试 =====
     int Axis_PDO_ReadControlword(uint16_t& Controlword);
     int Axis_PDO_ReadTargetPosition(int32_t& TargetPosition);
     int Axis_PDO_ReadTargetVelocity(int32_t& TargetVelocity);
@@ -128,31 +156,8 @@ public:
 
 
 
-    //MC功能块控制
-    int SoftMotion_PDO_SetControlword(uint16_t Controlword);
-    int SoftMotion_PDO_SetTargetPosition(int32_t TargetPosition);
-    int SoftMotion_PDO_SetTargetVelocity(int32_t TargetVelocity);
-    int SoftMotion_PDO_SetTargetTorque(int16_t TargetTorque);
-    int SoftMotion_PDO_SetModesOfOperation(EN_ModesOfOperation mode);
-    int SoftMotion_PDO_SetDigitalOutputs(uint32_t DigitalOutputs);
-    int SoftMotion_PDO_ReadStatusWord(uint16_t& StatusWord);
-    int SoftMotion_PDO_ReadErrorCode(uint16_t& ErrorCode);
-    int SoftMotion_PDO_ReadActualPosition(int32_t& ActualPosition);
-    int SoftMotion_PDO_ReadActualVelocity(int32_t& ActualVelocity);
-    int SoftMotion_PDO_ReadActualTorque(int16_t& ActualTorque);
-    int SoftMotion_PDO_ReadModesOfOperation(EN_ModesOfOperation& mode);
-    int SoftMotion_PDO_ReadDigitalInputs(uint32_t& inputs);
-    int SoftMotion_PDO_ReadDigitalOutputs(uint32_t& outputs);
-    int SoftMotion_PDO_ReadControlword(uint16_t& Controlword);
-    int SoftMotion_PDO_ReadTargetPosition(int32_t& TargetPosition);
-    int SoftMotion_PDO_ReadTargetVelocity(int32_t& TargetVelocity);
-    int SoftMotion_PDO_ReadTargetTorque(int16_t& TargetTorque);
-    int SoftMotion_PDO_ReadTargetModesOfOperation(uint8_t& mode);
-
-
-
-    int SoftMotion_PushMotionUint2SoftMotion(const ST_MotionUint STMotionUint);
-    int SoftMotion_GetMotionUintFromSoftMotion(ST_MotionUint& stMotionUint);
+    int Axis_PushMotionUint(const ST_MotionUint STMotionUint);
+    int Axis_GetMotionUint(ST_MotionUint& stMotionUint);
 
 
     //Config

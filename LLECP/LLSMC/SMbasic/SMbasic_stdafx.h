@@ -5,7 +5,9 @@
 #include "AxisConfig/MC_SetGearingRatio.h"
 
 #include "AxisControl/MC_InitResetAxis.h"
+#include "AxisControl/MC_PowerOff.h"
 #include "AxisControl/MC_PowerOn.h"
+#include "AxisControl/MC_Reset.h"
 
 #include "AxisMovement/MC_MoveAbsolute.h"
 #include "AxisMovement/MC_SetPosition.h"

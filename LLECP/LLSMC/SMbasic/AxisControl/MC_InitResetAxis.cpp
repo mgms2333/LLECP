@@ -1,7 +1,7 @@
 #include"MC_InitResetAxis.h"
 MC_InitResetAxis::MC_InitResetAxis(/* args */)
 {
-    m_Enabel =false;
+    m_bExecute =false;
     m_bBusy = false;
     m_bDone = false;
     m_bError = false;
@@ -12,9 +12,9 @@ MC_InitResetAxis::~MC_InitResetAxis()
 {
 }
 
-void MC_InitResetAxis::operator()(CIA402Axis* axis,bool Enabel,bool &m_bBusy,bool &bDone, bool &bError,int &nErrorID)
+void MC_InitResetAxis::operator()(CIA402Axis* axis,bool bExecute,bool &m_bBusy,bool &bDone, bool &bError,int &nErrorID)
 {
-    if((Enabel && m_Enabel)&&(axis != m_pCIA402Axis))
+    if((bExecute && m_bExecute)&&(axis != m_pCIA402Axis))
     {
         m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_errorstop);
         m_FSInitResetAxis = ReadyInitResetAxis;
@@ -24,7 +24,7 @@ void MC_InitResetAxis::operator()(CIA402Axis* axis,bool Enabel,bool &m_bBusy,boo
         m_nErrorID = SMEC_ABNORMAL_AXIS_CHANGE;
     }
     m_pCIA402Axis = axis;
-    m_Enabel = Enabel;
+    m_bExecute = bExecute;
     this->Execute();
     m_bBusy = m_bBusy;
     bDone = m_bDone;
@@ -45,16 +45,16 @@ void MC_InitResetAxis::Execute()
     m_bDone = false;
     m_nErrorID = SMEC_SUCCESSED;
     uint16_t nControlword;
-    if(!m_Enabel)
+    if(!m_bExecute)
     {
-        m_Timer.R_TRIG(m_Enabel);
+        m_Timer.R_TRIG(m_bExecute);
         m_FSInitResetAxis = ReadyInitResetAxis;
         return;
     }
     switch (m_FSInitResetAxis)
     {
     case ReadyInitResetAxis:
-        if(m_Timer.R_TRIG(m_Enabel))
+        if(m_Timer.R_TRIG(m_bExecute))
         {
             m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_power_off);
             if(m_pCIA402Axis->bVirtual)
@@ -72,12 +72,12 @@ void MC_InitResetAxis::Execute()
         break;
     case InitResetting:
         m_bBusy = true;
-        m_pCIA402Axis->SoftMotion_PDO_SetControlword(en_ControlWord_fr);
+        m_pCIA402Axis->Axis_PDO_SetControlword(en_ControlWord_fr);
         if(m_TimerTimeout.Ton(true, SMC_TIME_OUT))
         {
-            m_pCIA402Axis->SoftMotion_PDO_SetControlword(en_ControlWord_Init);
+            m_pCIA402Axis->Axis_PDO_SetControlword(en_ControlWord_Init);
             m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_power_off);
-            m_pCIA402Axis->SoftMotion_PDO_ReadControlword(nControlword);
+            m_pCIA402Axis->Axis_PDO_ReadControlword(nControlword);
             if(nControlword == en_ControlWord_Init)
             {
                 m_FSInitResetAxis = InitResetFinish;
@@ -85,7 +85,7 @@ void MC_InitResetAxis::Execute()
         }
         break;
     case InitResetFinish:
-        if(m_Timer.F_TRIG(m_Enabel))
+        if(m_Timer.F_TRIG(m_bExecute))
         {
             m_FSInitResetAxis = ReadyInitResetAxis;
             m_bBusy = false;

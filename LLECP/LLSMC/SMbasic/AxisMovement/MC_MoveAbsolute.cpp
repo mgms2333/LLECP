@@ -74,16 +74,16 @@ void MC_MoveAbsolute::Execute()
     if(m_Timer.R_TRIG(m_bExecute))
     {
         m_MotionUint = m_MotionUint_New;
-        m_pCIA402Axis->SoftMotion_PushMotionUint2SoftMotion(m_MotionUint);
+        m_pCIA402Axis->Axis_PushMotionUint(m_MotionUint);
     }
     //参数变更push
     if(m_MotionUint.PlanningMotionParam!=m_MotionUint_New.PlanningMotionParam)
     {
         m_MotionUint = m_MotionUint_New;
-        m_pCIA402Axis->SoftMotion_PushMotionUint2SoftMotion(m_MotionUint);
+        m_pCIA402Axis->Axis_PushMotionUint(m_MotionUint);
     }
     ST_MotionUint FirstMotionUint;
-    int nMotionNum = m_pCIA402Axis->SoftMotion_GetMotionUintFromSoftMotion(FirstMotionUint);
+    int nMotionNum = m_pCIA402Axis->Axis_GetMotionUint(FirstMotionUint);
     //点位小于0直接return
     if(nMotionNum < 0)
     {
@@ -110,6 +110,4 @@ void MC_MoveAbsolute::Execute()
         return;
     }
     return;
-
-    // 输入参数保存到成员变量
 }

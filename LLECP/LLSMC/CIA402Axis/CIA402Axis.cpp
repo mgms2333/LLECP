@@ -52,7 +52,7 @@ bool CIA402Axis::AxisCheckError()
     return(motionState_errorstop == m_enAxisMotionState);
 }
 
-int CIA402Axis::SoftMotion_PushMotionUint2SoftMotion(const ST_MotionUint STMotionUint)
+int CIA402Axis::Axis_PushMotionUint(const ST_MotionUint STMotionUint)
 {
     //立即中断当前运动，并开始新运动
     if(EN_BufferMode::enAborting == STMotionUint.BufferMode)
@@ -64,20 +64,29 @@ int CIA402Axis::SoftMotion_PushMotionUint2SoftMotion(const ST_MotionUint STMotio
     return AEC_SUCCESSED;
 }
 
-int CIA402Axis::SoftMotion_GetMotionUintFromSoftMotion(ST_MotionUint& stMotionUint)
+int CIA402Axis::Axis_GetMotionUint(ST_MotionUint& stMotionUint)
 {
     int res = m_stSoftMotionEX.vMotionUint.size();
-    if(res > 0 )
+    if(0 == res)
     {
-        stMotionUint = m_stSoftMotionEX.vMotionUint[0];
+        return ACE_PARAMETER_ERROR;
     }
-    return res;
+    for(auto it = m_stSoftMotionEX.vMotionUint.begin();it<m_stSoftMotionEX.vMotionUint.end();it++)
+    {
+        if(it->bMotionDone)
+        {
+            continue;
+        }
+        stMotionUint = *it;
+    }
+    return AEC_SUCCESSED;
 }
 
 
 
 void CIA402Axis::Axis_RT()
 {
+    PDOsynchronization();
     DataSynchronization();
     return;
 }

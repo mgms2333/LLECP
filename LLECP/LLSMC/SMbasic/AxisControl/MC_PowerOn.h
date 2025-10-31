@@ -9,5 +9,5 @@ public:
 
     void Execute()override;
     void operator()(CIA402Axis* axis);
-    void operator()(CIA402Axis* axis,bool Enabel,bool &bBusy,bool &bDone, bool &bError,int &nErrorID);
+    void operator()(CIA402Axis* axis,bool bExecute,bool &bBusy,bool &bDone, bool &bError,int &nErrorID);
 };

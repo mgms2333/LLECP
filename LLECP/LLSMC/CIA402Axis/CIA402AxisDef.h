@@ -124,8 +124,6 @@ struct ST_MotionUint
 
 struct ST_SoftMotionData
 {
-    //pdo同步
-    ST_SMC_PDO_Virtual stSoftMotionPDO;
     //待运动点位
     std::vector<ST_MotionUint>vMotionUint;
     //运动参数
