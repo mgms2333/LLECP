@@ -99,12 +99,14 @@ public:
     CIA402Axis(bool bVirtual);
     ~CIA402Axis();
     int Axis_InitMap(ST_SMCInitMap st_map);
-    int AxisSetAxisID(uint16_t id);
+    int Axis_SetAxisID(uint16_t id);
 protected:
-    int AxisSetAxisState(EN_AxisMotionState enAxisMotionState);
-    EN_AxisMotionState AxisReadAxisState();
-    bool AxisCheckError(int& nErrorID);
-    bool AxisCheckError();
+    int Axis_SetAxisState(EN_AxisMotionState enAxisMotionState);
+    EN_AxisMotionState Axis_ReadAxisState();
+    bool Axis_CheckError(int& nErrorID);
+    bool Axis_CheckError();
+    int Axis_ResetError();
+
 
     //PDO镜像直接控制pdo
 

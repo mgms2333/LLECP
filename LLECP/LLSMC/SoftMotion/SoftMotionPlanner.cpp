@@ -11,10 +11,10 @@ void SoftMotion::SoftMotionPlanner_RT()
 int SoftMotion::AxisMotionPlanner(CIA402Axis* pAxis)
 {
     //状态校验
-    if((pAxis->AxisReadAxisState()!=EN_AxisMotionState::motionState_standstill)
-            &&(pAxis->AxisReadAxisState()!=EN_AxisMotionState::motionState_discrete_motion)
-            &&(pAxis->AxisReadAxisState()!=EN_AxisMotionState::motionState_continuous_motion)
-            &&(pAxis->AxisReadAxisState()!=EN_AxisMotionState::motionState_synchronized_motion))
+    if((pAxis->Axis_ReadAxisState()!=EN_AxisMotionState::motionState_standstill)
+            &&(pAxis->Axis_ReadAxisState()!=EN_AxisMotionState::motionState_discrete_motion)
+            &&(pAxis->Axis_ReadAxisState()!=EN_AxisMotionState::motionState_continuous_motion)
+            &&(pAxis->Axis_ReadAxisState()!=EN_AxisMotionState::motionState_synchronized_motion))
             {
                 pAxis->m_stSoftMotionEX.vMotionUint.clear();
                 return AEC_SUCCESSED;
@@ -32,11 +32,11 @@ int SoftMotion::AxisMotionPlanner(CIA402Axis* pAxis)
         {
             pAxis->m_stSoftMotionEX.vMotionUint.clear();
             //切换状态
-            pAxis->AxisSetAxisState(EN_AxisMotionState::motionState_standstill);
+            pAxis->Axis_SetAxisState(EN_AxisMotionState::motionState_standstill);
             return AEC_SUCCESSED;
         }
     }
-    pAxis->AxisSetAxisState(EN_AxisMotionState::motionState_discrete_motion);
+    pAxis->Axis_SetAxisState(EN_AxisMotionState::motionState_discrete_motion);
     //当前迭代器内是正在运动的点位
     ST_PlanningMotionParam stMotionParam = itMotionData->PlanningMotionParam;
     //正在运行当前点位

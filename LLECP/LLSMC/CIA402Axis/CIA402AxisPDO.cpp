@@ -145,76 +145,95 @@ int CIA402Axis::PDO_ReadDigitalOutputs(uint32_t& outputs)
 int CIA402Axis::Axis_PDO_SetControlword(uint16_t Controlword)
 {
     m_stMirrorPDO.Controlword  = Controlword;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_PDO_SetTargetPosition(int32_t TargetPosition)
 {
     m_stMirrorPDO.TargetPosition  = TargetPosition;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_PDO_SetTargetVelocity(int32_t TargetVelocity)
 {
     m_stMirrorPDO.TargetVelocity = TargetVelocity;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_PDO_SetTargetTorque(int16_t TargetTorque)
 {
     m_stMirrorPDO.TargetTorque = TargetTorque;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_PDO_SetModesOfOperation(EN_ModesOfOperation mode)
 {
     m_stMirrorPDO.TargetModesOfOperation = mode;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_PDO_SetDigitalOutputs(uint32_t DigitalOutputs)
 {
     m_stMirrorPDO.DigitalInputs = DigitalOutputs;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_PDO_ReadStatusWord(uint16_t& StatusWord)
 {
     StatusWord = m_stMirrorPDO.StatusWord;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_PDO_ReadErrorCode(uint16_t& ErrorCode)
 {
     ErrorCode = m_stMirrorPDO.ErrorCode;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis:: Axis_PDO_ReadActualPosition(int32_t& ActualPosition)
 {
     ActualPosition = m_stMirrorPDO.ActualPosition;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_PDO_ReadActualVelocity(int32_t& ActualVelocity)
 {
     ActualVelocity = m_stMirrorPDO.ActualVelocity;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_PDO_ReadActualTorque(int16_t& ActualTorque)
 {
     ActualTorque = m_stMirrorPDO.ActualTorque;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_PDO_ReadModesOfOperation(EN_ModesOfOperation& mode)
 {
     mode = static_cast<EN_ModesOfOperation>(m_stMirrorPDO.ActualModesOfOperation);
+    return AEC_SUCCESSED;
 }   
 int CIA402Axis::Axis_PDO_ReadDigitalInputs(uint32_t& inputs)
 {
     inputs = m_stMirrorPDO.DigitalInputs;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_PDO_ReadDigitalOutputs(uint32_t& outputs)
 {
     outputs = m_stMirrorPDO.DigitalOutputs;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_PDO_ReadControlword(uint16_t& Controlword)
 {
     Controlword = m_stMirrorPDO.Controlword;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_PDO_ReadTargetPosition(int32_t& TargetPosition)
 {
     TargetPosition = m_stMirrorPDO.TargetPosition;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_PDO_ReadTargetVelocity(int32_t& TargetVelocity)
 {
     TargetVelocity = m_stMirrorPDO.ActualVelocity;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_PDO_ReadTargetTorque(int16_t& TargetTorque)
 {
     TargetTorque = m_stMirrorPDO.TargetTorque;
+    return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_PDO_ReadTargetModesOfOperation(uint8_t& mode)
 {
     mode = m_stMirrorPDO.TargetModesOfOperation;
+    return AEC_SUCCESSED;
 }

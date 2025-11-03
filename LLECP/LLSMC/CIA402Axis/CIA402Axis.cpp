@@ -26,30 +26,35 @@ int CIA402Axis::Axis_InitMap(ST_SMCInitMap st_map)
     int32_t s = *m_st_map.pActualPosition;
     return AEC_SUCCESSED;
 }
-int CIA402Axis::AxisSetAxisID(uint16_t id)
+int CIA402Axis::Axis_SetAxisID(uint16_t id)
 {
     m_nAxisID = id;
     return AEC_SUCCESSED;
 }
-int CIA402Axis::AxisSetAxisState(EN_AxisMotionState enAxisMotionState)
+int CIA402Axis::Axis_SetAxisState(EN_AxisMotionState enAxisMotionState)
 {
     m_enAxisMotionState = enAxisMotionState;
     return AEC_SUCCESSED;
 }
 
-EN_AxisMotionState CIA402Axis::AxisReadAxisState()
+EN_AxisMotionState CIA402Axis::Axis_ReadAxisState()
 {
     return m_enAxisMotionState;
 }
 
-bool CIA402Axis::AxisCheckError(int& nErrorID)
+bool CIA402Axis::Axis_CheckError(int& nErrorID)
 {
     nErrorID = m_nErrorCode;
     return(motionState_errorstop == m_enAxisMotionState);
 }
-bool CIA402Axis::AxisCheckError()
+bool CIA402Axis::Axis_CheckError()
 {
     return(motionState_errorstop == m_enAxisMotionState);
+}
+
+int CIA402Axis::Axis_ResetError()
+{
+    return AEC_SUCCESSED;
 }
 
 int CIA402Axis::Axis_PushMotionUint(const ST_MotionUint STMotionUint)

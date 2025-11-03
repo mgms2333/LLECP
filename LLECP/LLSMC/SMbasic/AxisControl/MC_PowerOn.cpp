@@ -20,7 +20,7 @@ void MC_PowerOn::operator()(CIA402Axis* axis,bool bExecute,bool &bBusy,bool &bDo
 {
     if((bExecute && m_bExecute)&&(axis != m_pCIA402Axis))
     {
-        m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_errorstop);
+        m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_errorstop);
         m_fsPowerOn = ReadyPowerOn;
         m_bBusy = false;
         m_bError = true;
@@ -38,6 +38,12 @@ void MC_PowerOn::operator()(CIA402Axis* axis,bool bExecute,bool &bBusy,bool &bDo
 
 void MC_PowerOn::Execute()
 {
+    if(nullptr == m_pCIA402Axis)
+    {
+        m_bError = true;
+        m_nErrorID = SMEC_INVALID_AXIS;
+        return;
+    }
     uint16_t nControlWord = 0;
     uint16_t nStatusWord = 0;
     m_pCIA402Axis->Axis_PDO_ReadStatusWord(nStatusWord);
@@ -54,13 +60,13 @@ void MC_PowerOn::Execute()
     }
     //检测使能中报错
     uint16_t unStatuBit;
-    if(m_pCIA402Axis->AxisCheckError())
+    if(m_pCIA402Axis->Axis_CheckError())
     {
         m_fsPowerOn = PowerOnError;
         //反馈错误状态
         m_bError = true;
         m_Timer.Ton(false, SMC_TIME_OUT);
-        m_pCIA402Axis->AxisCheckError();
+        m_pCIA402Axis->Axis_CheckError();
     } 
     //位置对齐
     if(ReadyPowerOn != m_fsPowerOn)
@@ -76,7 +82,7 @@ void MC_PowerOn::Execute()
             if(m_Timer.R_TRIG(m_bExecute))
             {
                 //检测轴是否为去使能状态（错误或运动等状态禁用）
-                if(motionState_power_off != m_pCIA402Axis->AxisReadAxisState())
+                if(motionState_power_off != m_pCIA402Axis->Axis_ReadAxisState())
                 {
                     //此状态不允许使能，也不切状态机，功能块置为error
                     m_fsPowerOn = PowerOnError;
@@ -93,7 +99,7 @@ void MC_PowerOn::Execute()
                     //反馈完成状态
                     m_bDone = true;
                     //同步状态机
-                    m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_standstill);
+                    m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_standstill);
                     m_fsPowerOn = PowerOnFinish;
                     m_Timer.Ton(false, SMC_TIME_OUT);
                     break;
@@ -124,7 +130,7 @@ void MC_PowerOn::Execute()
             if(m_Timer.Ton(true, SMC_TIME_OUT))
             {
                 m_fsPowerOn = PowerOnError;
-                m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_errorstop);
+                m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_errorstop);
                 m_bError = true;
                 m_bBusy = false;
                 m_nErrorID = SMEC_TIMEOUT;
@@ -145,7 +151,7 @@ void MC_PowerOn::Execute()
             if(m_Timer.Ton(true, SMC_TIME_OUT))
             {
                 m_fsPowerOn = PowerOnError;
-                m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_errorstop);
+                m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_errorstop);
                 m_bError = true;
                 m_bBusy = false;
                 m_nErrorID = SMEC_TIMEOUT;
@@ -162,14 +168,14 @@ void MC_PowerOn::Execute()
                 m_bDone = true;
                 m_fsPowerOn = PowerOnFinish;
                 // 切换轴状态到准备就绪状态
-                m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_standstill);
+                m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_standstill);
                 break;
             }
             //超时检测
             if(m_Timer.Ton(true, SMC_TIME_OUT))
             {
                 m_fsPowerOn = PowerOnError;
-                m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_errorstop);
+                m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_errorstop);
                 m_bError = true;
                 m_bBusy = false;
                 m_nErrorID = SMEC_TIMEOUT;

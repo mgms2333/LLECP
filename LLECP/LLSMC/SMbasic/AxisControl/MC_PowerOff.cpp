@@ -20,7 +20,7 @@ void MC_PowerOff::operator()(CIA402Axis* axis,bool bExecute,bool &bBusy,bool &bD
 {
     if((bExecute && m_bExecute)&&(axis != m_pCIA402Axis))
     {
-        m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_errorstop);
+        m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_errorstop);
         m_fsPowerOff = ReadyPowerOff;
         m_bBusy = false;
         m_bError = true;
@@ -38,6 +38,12 @@ void MC_PowerOff::operator()(CIA402Axis* axis,bool bExecute,bool &bBusy,bool &bD
 
 void MC_PowerOff::Execute()
 {
+    if(nullptr == m_pCIA402Axis)
+    {
+        m_bError = true;
+        m_nErrorID = SMEC_INVALID_AXIS;
+        return;
+    }
     uint16_t nControlWord = 0;
     uint16_t nStatusWord = 0;
     m_pCIA402Axis->Axis_PDO_ReadStatusWord(nStatusWord);
@@ -54,13 +60,13 @@ void MC_PowerOff::Execute()
     }
     //检测使能中报错
     uint16_t unStatuBit;
-    if(m_pCIA402Axis->AxisCheckError())
+    if(m_pCIA402Axis->Axis_CheckError())
     {
         m_fsPowerOff = PowerOffError;
         //反馈错误状态
         m_bError = true;
         m_Timer.Ton(false, SMC_TIME_OUT);
-        m_pCIA402Axis->AxisCheckError();
+        m_pCIA402Axis->Axis_CheckError();
     } 
     //位置对齐
     if(ReadyPowerOff != m_fsPowerOff)
@@ -75,7 +81,7 @@ void MC_PowerOff::Execute()
             if(m_Timer.R_TRIG(m_bExecute))
             {
                 //检测轴是否为去使能状态（错误或运动等状态禁用）
-                if(motionState_standstill != m_pCIA402Axis->AxisReadAxisState())
+                if(motionState_standstill != m_pCIA402Axis->Axis_ReadAxisState())
                 {
                     //此状态不允许使能，也不切状态机，功能块置为error
                     m_fsPowerOff = PowerOffError;
@@ -92,7 +98,7 @@ void MC_PowerOff::Execute()
                     //反馈完成状态
                     m_bDone = true;
                     //同步状态机
-                    m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_power_off);
+                    m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_power_off);
                     m_fsPowerOff = PowerOffFinish;
                     m_Timer.Ton(false, SMC_TIME_OUT);
                     break;
@@ -120,7 +126,7 @@ void MC_PowerOff::Execute()
             m_bBusy = true;
             if ((nStatusWord & en_StatusWord_oe) == 0)
             {
-                m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_power_off);
+                m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_power_off);
                 nControlWord = en_ControlWord_Init;
                 m_pCIA402Axis->Axis_PDO_SetControlword(nControlWord);
                 m_pCIA402Axis->Axis_PDO_SetTargetPosition(0); 
@@ -132,7 +138,7 @@ void MC_PowerOff::Execute()
             if(m_Timer.Ton(true, SMC_TIME_OUT))
             {
                 m_fsPowerOff = PowerOffError;
-                m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_errorstop);
+                m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_errorstop);
                 m_bError = true;
                 m_nErrorID = SMEC_TIMEOUT;
                 m_Timer.Ton(false, SMC_TIME_OUT);

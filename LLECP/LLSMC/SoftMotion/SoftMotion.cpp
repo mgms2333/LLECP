@@ -5,7 +5,7 @@ SoftMotion::SoftMotion(std::vector<CIA402Axis*> v_Axis)
     for(size_t i =0;i<v_Axis.size();i++)
     {
         SoftMotionPlanParams data;
-        v_Axis[i]->AxisSetAxisID(i);
+        v_Axis[i]->Axis_SetAxisID(i);
         m_vSoftMotionPlanParams.push_back(data);
     }
 }

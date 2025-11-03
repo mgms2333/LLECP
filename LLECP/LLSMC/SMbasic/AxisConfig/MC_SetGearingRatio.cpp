@@ -35,6 +35,12 @@ void MC_SetGearingRatio::operator()(CIA402Axis* axis,bool bExecute,double dGeari
 
 void MC_SetGearingRatio::Execute()
 {
+    if(nullptr == m_pCIA402Axis)
+    {
+        m_bError = true;
+        m_nErrorID = SMEC_INVALID_AXIS;
+        return;
+    }
     //输出初始化
     m_bDone             = false;
     m_bError            = false;

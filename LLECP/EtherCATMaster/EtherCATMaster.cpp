@@ -279,8 +279,9 @@ int EtherCATMaster::InitRT_Thread()
    }
    else
    {
-      printf("No socket connection on %s\nExcecute as root\n", m_sNetWork);
+      printf("No socket connection on %s\nExcecute as root\n", m_sNetWork.c_str());
    }
+   return 0;
  }
 
 int EtherCATMaster::InitSlave()

@@ -36,6 +36,12 @@ void MC_MoveAbsolute::operator()(CIA402Axis* axis,bool bExecute,double dPosition
 
 void MC_MoveAbsolute::Execute()
 {
+    if(nullptr == m_pCIA402Axis)
+    {
+        m_bError = true;
+        m_nErrorID = SMEC_INVALID_AXIS;
+        return;
+    }
     // 输出参数默认初始化
     m_bDone             = false;
     m_bBusy             = false;
@@ -44,17 +50,17 @@ void MC_MoveAbsolute::Execute()
     m_nErrorID           = 0;
     
     //状态校验
-    if(EN_AxisMotionState::motionState_errorstop == m_pCIA402Axis->AxisReadAxisState())
+    if(EN_AxisMotionState::motionState_errorstop == m_pCIA402Axis->Axis_ReadAxisState())
     {
         m_bError            = true;
-        m_pCIA402Axis->AxisCheckError(m_nErrorID);
+        m_pCIA402Axis->Axis_CheckError(m_nErrorID);
         return;
     }
     if(m_bExecute)
     {
-        if((EN_AxisMotionState::motionState_standstill != m_pCIA402Axis->AxisReadAxisState()) &&
-             (EN_AxisMotionState::motionState_continuous_motion!= m_pCIA402Axis->AxisReadAxisState()) &&
-                (EN_AxisMotionState::motionState_discrete_motion!= m_pCIA402Axis->AxisReadAxisState()))
+        if((EN_AxisMotionState::motionState_standstill != m_pCIA402Axis->Axis_ReadAxisState()) &&
+             (EN_AxisMotionState::motionState_continuous_motion!= m_pCIA402Axis->Axis_ReadAxisState()) &&
+                (EN_AxisMotionState::motionState_discrete_motion!= m_pCIA402Axis->Axis_ReadAxisState()))
         {
             m_nErrorID = SMEC_AXIS_STATUS_INTERCEPTION;
             m_bError = true;

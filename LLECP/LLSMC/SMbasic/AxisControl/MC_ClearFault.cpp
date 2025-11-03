@@ -1,5 +1,5 @@
-#include"MC_Reset.h"
-MC_Reset::MC_Reset(/* args */)
+#include"MC_ClearFault.h"
+MC_ClearFault::MC_ClearFault(/* args */)
 {
     m_bExecute =false;
     m_bBusy = false;
@@ -8,20 +8,20 @@ MC_Reset::MC_Reset(/* args */)
     m_nErrorID = false;
 }
 
-MC_Reset::~MC_Reset()
+MC_ClearFault::~MC_ClearFault()
 {
 }
 
-void MC_Reset::operator()(CIA402Axis* axis)
+void MC_ClearFault::operator()(CIA402Axis* axis)
 {
     this->Execute();
 }
-void MC_Reset::operator()(CIA402Axis* axis,bool bExecute,bool &bBusy,bool &bDone, bool &bError,int &nErrorID)
+void MC_ClearFault::operator()(CIA402Axis* axis,bool bExecute,bool &bBusy,bool &bDone, bool &bError,int &nErrorID)
 {
     if((bExecute && m_bExecute)&&(axis != m_pCIA402Axis))
     {
         m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_errorstop);
-        m_fsReset = ReadyReset;
+        m_fsClearFault = ReadyReset;
         m_bBusy = false;
         m_bError = true;
         m_bDone = false;
@@ -36,7 +36,7 @@ void MC_Reset::operator()(CIA402Axis* axis,bool bExecute,bool &bBusy,bool &bDone
     nErrorID = m_nErrorID;
 }
 
-void MC_Reset::Execute()
+void MC_ClearFault::Execute()
 {
     if(nullptr == m_pCIA402Axis)
     {
@@ -55,10 +55,10 @@ void MC_Reset::Execute()
     if(!m_bExecute)
     {
        m_Timer.R_TRIG(m_bExecute);
-       m_fsReset = ReadyReset;
+       m_fsClearFault = ReadyReset;
        return;
     }
-    switch (m_fsReset)
+    switch (m_fsClearFault)
     {
     case ReadyReset:
         if(m_Timer.R_TRIG(m_bExecute))
@@ -66,11 +66,11 @@ void MC_Reset::Execute()
             if(m_pCIA402Axis->bVirtual)
             {
                 m_bDone = true;
-                m_fsReset = ResetFinish;
+                m_fsClearFault = ResetFinish;
                 m_Timer.Ton(false, SMC_TIME_OUT);
                 break;
             }
-            m_fsReset = StartReset;
+            m_fsClearFault = StartReset;
             m_bBusy = true;
             m_Timer.Ton(false, SMC_TIME_OUT);
             break;
@@ -81,7 +81,7 @@ void MC_Reset::Execute()
         {
             m_pCIA402Axis->Axis_ResetError();
             m_bDone = true;
-            m_fsReset = ResetFinish;
+            m_fsClearFault = ResetFinish;
             m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_power_off);
             nControlWord = en_ControlWord_Init;
             m_pCIA402Axis->Axis_PDO_SetControlword(nControlWord);
@@ -89,9 +89,9 @@ void MC_Reset::Execute()
             break;
         }
         m_bBusy = true;
-        nControlWord = en_ControlWord_fr;
+        nControlWord = nControlWord | en_ControlWord_fr | en_ControlWord_qs | en_ControlWord_ev;
         m_pCIA402Axis->Axis_PDO_SetControlword(nControlWord);
-        m_fsReset = Reseting;
+        m_fsClearFault = Reseting;
         break;
     case Reseting:
         if(m_Timer.Ton(true, SMC_TIME_OUT))
@@ -99,14 +99,14 @@ void MC_Reset::Execute()
             m_bError = true;
             m_nErrorID = SMEC_TIMEOUT;
             m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_errorstop);
-            m_fsReset = ResetError;
+            m_fsClearFault = ResetError;
             break;
         }
         if(!m_pCIA402Axis->Axis_CheckError())
         {
              m_pCIA402Axis->Axis_ResetError();
             m_bDone = true;
-            m_fsReset = ResetFinish;
+            m_fsClearFault = ResetFinish;
             m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_power_off);
             nControlWord = en_ControlWord_Init;
             m_pCIA402Axis->Axis_PDO_SetControlword(nControlWord);
@@ -119,7 +119,7 @@ void MC_Reset::Execute()
         m_bDone = true;
         if(m_Timer.F_TRIG(m_bExecute))
         {
-            m_fsReset = ReadyReset;
+            m_fsClearFault = ReadyReset;
             m_Timer.Ton(false, SMC_TIME_OUT);
             break;
         }
@@ -129,13 +129,13 @@ void MC_Reset::Execute()
         m_nErrorID = SMEC_TIMEOUT;
         if(m_Timer.F_TRIG(m_bExecute))
         {
-            m_fsReset = ReadyReset;
+            m_fsClearFault = ReadyReset;
             m_Timer.Ton(false, SMC_TIME_OUT);
             break;
         }
         break;
     default:
-        m_fsReset = ResetError;
+        m_fsClearFault = ResetError;
         m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_errorstop);
         break;
     }

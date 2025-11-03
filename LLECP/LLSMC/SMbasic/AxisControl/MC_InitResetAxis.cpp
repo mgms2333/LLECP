@@ -16,7 +16,7 @@ void MC_InitResetAxis::operator()(CIA402Axis* axis,bool bExecute,bool &m_bBusy,b
 {
     if((bExecute && m_bExecute)&&(axis != m_pCIA402Axis))
     {
-        m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_errorstop);
+        m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_errorstop);
         m_FSInitResetAxis = ReadyInitResetAxis;
         m_bBusy = false;
         m_bError = true;
@@ -40,6 +40,12 @@ void MC_InitResetAxis::operator()(CIA402Axis* axis)
 
 void MC_InitResetAxis::Execute()
 {
+    if(nullptr == m_pCIA402Axis)
+    {
+        m_bError = true;
+        m_nErrorID = SMEC_INVALID_AXIS;
+        return;
+    }
     m_bBusy = false;
     m_bError = false;
     m_bDone = false;
@@ -56,7 +62,7 @@ void MC_InitResetAxis::Execute()
     case ReadyInitResetAxis:
         if(m_Timer.R_TRIG(m_bExecute))
         {
-            m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_power_off);
+            m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_power_off);
             if(m_pCIA402Axis->bVirtual)
             {
                 m_bDone = true;
@@ -76,7 +82,7 @@ void MC_InitResetAxis::Execute()
         if(m_TimerTimeout.Ton(true, SMC_TIME_OUT))
         {
             m_pCIA402Axis->Axis_PDO_SetControlword(en_ControlWord_Init);
-            m_pCIA402Axis->AxisSetAxisState(EN_AxisMotionState::motionState_power_off);
+            m_pCIA402Axis->Axis_SetAxisState(EN_AxisMotionState::motionState_power_off);
             m_pCIA402Axis->Axis_PDO_ReadControlword(nControlword);
             if(nControlword == en_ControlWord_Init)
             {

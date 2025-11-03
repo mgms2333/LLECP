@@ -3,6 +3,7 @@
 #define FRIENDLIST_H
 
 #define FRIEND_CLASSES \
+    friend class MC_ClearFault; \
     friend class MC_InitResetAxis; \
     friend class MC_MoveAbsolute; \
     friend class MC_PowerOff; \
