@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <math.h>
-struct ST_SMC_PDO_Virtual
+struct ST_CIA402_PDO
 {
     uint16_t   Controlword;
     uint16_t   StatusWord;

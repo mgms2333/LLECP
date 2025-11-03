@@ -2,6 +2,7 @@
 #define CIA402AXISDEF_H   // 定义宏，防止重复包含
 #include"CIA402AxisDef.h"
 #include"AxisErrorCode.h"
+#include"AxisFriendList.h"
 #define PDO_CONTROLWORD  *(m_st_map.pControlword)
 #define PDO_STATUSWORD  *(m_st_map.pStatusWord)
 #define PDO_TARGETPOSITION  *(m_st_map.pTargetPosition)
@@ -19,14 +20,15 @@ class SoftMotion;
 
 class CIA402Axis 
 {
+    FRIEND_CLASSES
     friend SoftMotion;
 protected:
     //connfig
     bool m_bVirtual;
     uint32_t m_nAxisID;
-    ST_SMC_PDO_Virtual m_stPDO_Virtual;
+    ST_CIA402_PDO m_stPDO_Virtual;
     //pdo同步
-    ST_SMC_PDO_Virtual m_stMirrorPDO;
+    ST_CIA402_PDO m_stMirrorPDO;
     ST_SMCInitMap m_st_map;
     ST_SMCAxisConfiguration m_stAxisConfiguration;
     double m_dControlCycle;//ms
@@ -98,6 +100,7 @@ public:
     ~CIA402Axis();
     int Axis_InitMap(ST_SMCInitMap st_map);
     int AxisSetAxisID(uint16_t id);
+protected:
     int AxisSetAxisState(EN_AxisMotionState enAxisMotionState);
     EN_AxisMotionState AxisReadAxisState();
     bool AxisCheckError(int& nErrorID);
@@ -159,7 +162,7 @@ public:
     int Axis_PushMotionUint(const ST_MotionUint STMotionUint);
     int Axis_GetMotionUint(ST_MotionUint& stMotionUint);
 
-
+public:
     //Config
     //设置减速比，调用即时生效*******减速比定义：在设置的编码器分辨率下一个编码器分辨率周期下的运动距离*****对于HR机器人应该是360/101
     int Axis_SetGearRatio(double dGearRatio);
@@ -184,9 +187,11 @@ public:
 
 
 
-
+protected:
     int Axis_SetTargetPosition(double TargetPosition);
 
+
+//CIA402AxisGeneral
 protected:
     //轴的实时函数
     void Axis_RT();

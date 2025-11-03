@@ -7,7 +7,7 @@
 #include <fstream>
 #include<math.h>
 
-#define Zero 0
+#define Zero 1e-9
 #define MAX_PATH_NUM_ALLOWED 100000
 #define ITERATIVESTEPS 0.00001
 
@@ -26,15 +26,25 @@
 #define Planning_error 12
 #define Denominator_is_zero 1111
 
+
+enum EN_PlanMode
+{
+    enNullMode = 0,
+	enPosition_PlanMode = 1,
+	enVelocity_PlanMode = 2,
+};
+
 struct ST_PlanParams {
-	double q0;      // 起始位置
-	double q1;      // 目标位置  
-	double v0;      // 起始速度
-	double v1;      // 结束速度
-	double V_max;    // 最大速度
-	double A_max;    // 最大加速度
-	double J_max;    // 最大加加速度
-	double S_max;    // 最大跳度
+	double q0=0;      // 起始位置
+	double q1=0;      // 目标位置  
+	double v0=0;      // 起始速度
+	double v1=0;      // 结束速度
+	double V_max=0;    // 最大速度
+	double A_amax=0;    // 最大加速度
+	double A_dmax=0;    // 最大加速度
+	double J_max=0;    // 最大加加速度
+	double S_max=0;    // 最大跳度
+	EN_PlanMode enPlanmode;      //运动模式
 
 	// 相等运算符：逐个成员比较
 	bool operator==(const ST_PlanParams& other) const
@@ -46,7 +56,8 @@ struct ST_PlanParams {
 			fabs(v0 - other.v0) < ITERATIVESTEPS &&
 			fabs(v1 - other.v1) < ITERATIVESTEPS &&
 			fabs(V_max - other.V_max) < ITERATIVESTEPS &&
-			fabs(A_max - other.A_max) < ITERATIVESTEPS &&
+			fabs(A_amax - other.A_amax) < ITERATIVESTEPS &&
+			fabs(A_dmax - other.A_dmax) < ITERATIVESTEPS &&
 			fabs(J_max - other.J_max) < ITERATIVESTEPS &&
 			fabs(S_max - other.S_max) < ITERATIVESTEPS;
 	}
@@ -58,7 +69,8 @@ struct ST_PlanParams {
 			fabs(v0 - other.v0) > ITERATIVESTEPS ||
 			fabs(v1 - other.v1) > ITERATIVESTEPS ||
 			fabs(V_max - other.V_max) > ITERATIVESTEPS ||
-			fabs(A_max - other.A_max) > ITERATIVESTEPS ||
+			fabs(A_amax - other.A_amax) < ITERATIVESTEPS ||
+			fabs(A_dmax - other.A_dmax) < ITERATIVESTEPS ||
 			fabs(J_max - other.J_max) > ITERATIVESTEPS ||
 			fabs(S_max - other.S_max) > ITERATIVESTEPS;
 	}
@@ -67,25 +79,25 @@ struct ST_PlanParams {
 
 struct ST_PlanData {
 
-	double Ta;      // 加速时间
-	double Tv;      // 匀速时间
-	double Td;      // 减速时间
-	double Tsa;
-	double Tsd;
-	double Tja;
-	double Tjd;
-	double T;       // 总时间
+	double Ta=0;      // 加速时间
+	double Tv=0;      // 匀速时间
+	double Td=0;      // 减速时间
+	double Tsa=0;
+	double Tsd=0;
+	double Tja=0;
+	double Tjd=0;
+	double T=0;       // 总时间
 
-	double A_amax;
-	double A_dmax;
-	double J_amax;
-	double J_dmax;
-	int direction;
+	double A_amax=0;
+	double A_dmax=0;
+	double J_amax=0;
+	double J_dmax=0;
+	int direction=1;
 };
 struct ST_InterParams {
-	double P; // 位置
-	double V; // 速度 
-	double A; // 加速度
-	double J; // 加加速度
-	double S; // 跳度
+	double P=0; // 位置
+	double V=0; // 速度 
+	double A=0; // 加速度
+	double J=0; // 加加速度
+	double S=0; // 跳度
 };

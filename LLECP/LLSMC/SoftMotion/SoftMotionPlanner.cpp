@@ -54,7 +54,7 @@ int SoftMotion::AxisMotionPlanner(CIA402Axis* pAxis)
     {
         pAxis->m_stSoftMotionEX.stSoftMotionMotionParam = stMotionParam;
         pAxis->m_stSoftMotionEX.dMotionTime = 0;
-        ST_PlanParams stsetParam{pAxis->dActPosition,stMotionParam.pos,pAxis->dActVelocity,0,stMotionParam.vel,stMotionParam.acc,stMotionParam.jerk,MaxSnap};
+        ST_PlanParams stsetParam{pAxis->dActPosition,stMotionParam.pos,pAxis->dActVelocity,0,stMotionParam.vel,stMotionParam.acc,stMotionParam.dec,stMotionParam.jerk,MaxSnap,enPosition_PlanMode};
         FifteenSeg_plan(stsetParam,m_vSoftMotionPlanParams[pAxis->nAxisID].stActParam,m_vSoftMotionPlanParams[pAxis->nAxisID].trackData);
         //得到当前帧的运动参数
         FifteenSeg_Inter(m_vSoftMotionPlanParams[pAxis->nAxisID].stActParam,m_vSoftMotionPlanParams[pAxis->nAxisID].trackData,
