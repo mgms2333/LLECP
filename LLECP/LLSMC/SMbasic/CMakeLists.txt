@@ -7,7 +7,7 @@ set(SM_HEADER_DIRS
 )
 
 set(SM_PRECOMPILED_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/SMbasic_stdafx.h")
-file(WRITE ${SM_PRECOMPILED_HEADER} "#pragma once\n\n// === 自动生成：包含所有子目录头文件 ===\n\n")
+file(WRITE ${SM_PRECOMPILED_HEADER} "#pragma once\n\n/* 该文件自动生成，不需要手动修改 */\n\n")
 foreach(DIR ${SM_HEADER_DIRS})
     file(GLOB HEADERS "${DIR}/*.h")
     foreach(HEADER ${HEADERS})

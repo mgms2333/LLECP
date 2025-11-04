@@ -39,6 +39,11 @@ int SoftMotion::AxisMotionPlanner(CIA402Axis* pAxis)
     pAxis->Axis_SetAxisState(EN_AxisMotionState::motionState_discrete_motion);
     //当前迭代器内是正在运动的点位
     ST_PlanningMotionParam stMotionParam = itMotionData->PlanningMotionParam;
+    //绝对运动做偏移
+    if(enRelativMotion == itMotionData->MoveType)
+    {
+        stMotionParam.pos = pAxis->dActPosition + stMotionParam.pos;
+    }
     //正在运行当前点位
     if(pAxis->m_stSoftMotionEX.stSoftMotionMotionParam == stMotionParam)
     {
@@ -54,7 +59,7 @@ int SoftMotion::AxisMotionPlanner(CIA402Axis* pAxis)
     {
         pAxis->m_stSoftMotionEX.stSoftMotionMotionParam = stMotionParam;
         pAxis->m_stSoftMotionEX.dMotionTime = 0;
-        ST_PlanParams stsetParam{pAxis->dActPosition,stMotionParam.pos,pAxis->dActVelocity,0,stMotionParam.vel,stMotionParam.acc,stMotionParam.dec,stMotionParam.jerk,MaxSnap,enPosition_PlanMode};
+        ST_PlanParams stsetParam{pAxis->dActPosition,stMotionParam.pos,pAxis->dActVelocity,0,stMotionParam.vel,stMotionParam.acc,stMotionParam.dec,stMotionParam.jerk,MaxSnap,stMotionParam.PlanningMode};
         FifteenSeg_plan(stsetParam,m_vSoftMotionPlanParams[pAxis->nAxisID].stActParam,m_vSoftMotionPlanParams[pAxis->nAxisID].trackData);
         //得到当前帧的运动参数
         FifteenSeg_Inter(m_vSoftMotionPlanParams[pAxis->nAxisID].stActParam,m_vSoftMotionPlanParams[pAxis->nAxisID].trackData,

@@ -1,4 +1,5 @@
 #pragma once
+#include"../SoftMotion/motion_algorithm/motion_planning/MotionDefine.h"
 #include <vector>
 #include <stdint.h> 
 #include <string.h>
@@ -6,6 +7,9 @@
 #include <cstdlib>
 #include <cstdio>
 #include <math.h>
+
+
+
 struct ST_CIA402_PDO
 {
     uint16_t   Controlword;
@@ -55,23 +59,21 @@ struct ST_SMCInitMap
         pDigitalOutputs = nullptr;
     }
 };
-//规划模式
-enum EN_PlanningMode
-{
-    //0
-    enPlanningModeNull = 0,//无模式
-    enPosition = 1,//位置模式
-    enVelocity = 2,//速度模式
-    enAcceleration = 3, //加速度模式
 
-    enStop = 99 //停止模式
-};
 // 运动方向
 enum EN_Direction
 {
     enPositive = 0,   // 正方向
     enNegative = 1,   // 负方向
     enCurrent  = 2    // 保持当前方向（有些厂商支持）
+};
+
+//运动模式
+enum EN_MoveType
+{
+    enMoveTypeNull,
+    enAbsoluteMotion,
+    enRelativMotion,
 };
 
 // 缓冲模式
@@ -115,6 +117,7 @@ struct ST_MotionUint
 {
     ST_PlanningMotionParam  PlanningMotionParam;
     EN_BufferMode BufferMode;
+    EN_MoveType MoveType;
     void* fbID;//功能块指针
     bool bMotion;
     bool bMotionDone;
@@ -140,7 +143,6 @@ struct ST_SMCAxisConfiguration
     int nEncodeDirection;
     int nEncodeHomePos;
     double dCurrentScales;
-    double dTorqueFeedforwardScale;
     double dVelocityScale;
     int nCurrentDirection;
     double dPositive;
@@ -153,7 +155,6 @@ struct ST_SMCAxisConfiguration
         nEncodeHomePos = 0;
         dCurrentScales = 1;
         nCurrentDirection = 1;
-        dTorqueFeedforwardScale =1;
         dNegative = 0;
         dPositive = 0;
     }

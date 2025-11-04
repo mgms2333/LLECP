@@ -1,13 +1,13 @@
-#include"MC_ReadActualPosition.h"
-MC_ReadActualPosition::MC_ReadActualPosition(/* args */)
+#include"MC_FollowTorque.h"
+MC_FollowTorque::MC_FollowTorque(/* args */)
 {
 }
 
-MC_ReadActualPosition::~MC_ReadActualPosition()
+MC_FollowTorque::~MC_FollowTorque()
 {
 }
 
-void MC_ReadActualPosition::operator()(CIA402Axis* axis)
+void MC_FollowTorque::operator()(CIA402Axis* axis)
 {
     if(nullptr == axis)
     {
@@ -15,7 +15,7 @@ void MC_ReadActualPosition::operator()(CIA402Axis* axis)
     }
     m_pCIA402Axis = axis;
 }
-void MC_ReadActualPosition::operator()(CIA402Axis* axis,bool bExecute,bool& bValid,bool& bBusy,bool& bError,int& ErrorID,double& dPosition)
+void MC_FollowTorque::operator()(CIA402Axis* axis,bool bExecute,double dTorque,bool& bBusy,bool& bError,int& ErrorID)
 {
     if(nullptr == axis)
     {
@@ -25,33 +25,36 @@ void MC_ReadActualPosition::operator()(CIA402Axis* axis,bool bExecute,bool& bVal
     }
     m_pCIA402Axis = axis;
     m_bExecute = bExecute;
+    m_dTorque = dTorque;
     this->Execute();
-    bValid = m_bValid;
-    dPosition = m_dPosition;
     bBusy = m_bBusy;
     bError = m_bError;
     ErrorID = m_nErrorID;
 }
 
 
-void MC_ReadActualPosition::Execute()
+void MC_FollowTorque::Execute()
 {
     if(nullptr == m_pCIA402Axis)
     {
         m_bError = true;
-        m_bValid = false;
         m_nErrorID = SMEC_INVALID_AXIS;
         return;
     }
     //输出初始化
-    m_bValid            = true;
     m_bBusy             = false;
     m_bError            = false;
-    m_nErrorID          = SMEC_SUCCESSED;
+    m_nErrorID           = SMEC_SUCCESSED;
+    int res = AEC_SUCCESSED;
     if(m_bExecute)
     {
-        m_dPosition = m_pCIA402Axis->dActPosition;
+        res = m_pCIA402Axis->Axis_SetTargetVelocity(m_dTorque);
     }
+    if(AEC_SUCCESSED != res)
+    {
+        m_bError = true;
+    }
+
     m_bBusy = true;
     return;
 }

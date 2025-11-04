@@ -4,14 +4,20 @@
 
 #define FRIEND_CLASSES \
     friend class MC_ClearFault; \
+    friend class MC_FollowPosition; \
+    friend class MC_FollowTorque; \
+    friend class MC_FollowVelocity; \
     friend class MC_InitResetAxis; \
     friend class MC_MoveAbsolute; \
     friend class MC_PowerOff; \
     friend class MC_PowerOn; \
     friend class MC_ReadActualPosition; \
     friend class MC_Reset; \
+    friend class MC_SetEncodeRatio; \
     friend class MC_SetGearingRatio; \
     friend class MC_SetPosition; \
+    friend class MC_SetSetSWLimit; \
+    friend class MC_Stop; \
     friend class SMbasic; \
 
 #endif /* FRIENDLIST_H */

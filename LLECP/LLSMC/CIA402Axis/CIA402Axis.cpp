@@ -114,16 +114,18 @@ void CIA402Axis::DataSynchronization()
     dActPosition = m_stAxisMotionData_now.dTarPos = m_stAxisConfiguration.nEncodeDirection * 
                                         double(*m_st_map.pActualPosition - m_stAxisConfiguration.nEncodeHomePos) / 
                                         double(m_stAxisConfiguration.nEncodeRatio * m_stAxisConfiguration.dGearRatio);
+    //状态
     nAxisErrorID = m_nErrorCode;
+    bBusy     = m_bBusy;
+    nAxisID   = m_nAxisID;
+    enAxisMotionState = m_enAxisMotionState;
     //配置
     bVirtual = m_bVirtual;
-    enAxisMotionState = m_enAxisMotionState;
     dGearRatio = m_stAxisConfiguration.dGearRatio;
     nEncodeRatio = m_stAxisConfiguration.nEncodeRatio;
     nEncodeDirection = m_stAxisConfiguration.nEncodeDirection;
     nEncodeHomePos = m_stAxisConfiguration.nEncodeHomePos;
     dCurrentScales = m_stAxisConfiguration.dCurrentScales;
-    dTorqueFeedforwardScale = m_stAxisConfiguration.dTorqueFeedforwardScale;
     dVelocityScale = m_stAxisConfiguration.dVelocityScale;
     nCurrentDirection = m_stAxisConfiguration.nCurrentDirection;
     return;

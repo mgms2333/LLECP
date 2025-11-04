@@ -6,7 +6,6 @@
 #include <iostream>
 #include <fstream>
 #include<math.h>
-
 #define Zero 1e-9
 #define MAX_PATH_NUM_ALLOWED 100000
 #define ITERATIVESTEPS 0.00001
@@ -26,13 +25,18 @@
 #define Planning_error 12
 #define Denominator_is_zero 1111
 
-
-enum EN_PlanMode
+//规划模式
+enum EN_PlanningMode
 {
-    enNullMode = 0,
-	enPosition_PlanMode = 1,
-	enVelocity_PlanMode = 2,
+    //0
+    enPlanningModeNull = 0,//无模式
+    enPositionPlanningMode = 1,//位置模式
+    enVelocityPlanningMode = 2,//速度模式
+    enAccelerationPlanningMode = 3, //加速度模式
+
+    enStop = 99 //停止模式
 };
+
 
 struct ST_PlanParams {
 	double q0=0;      // 起始位置
@@ -44,7 +48,7 @@ struct ST_PlanParams {
 	double A_dmax=0;    // 最大加速度
 	double J_max=0;    // 最大加加速度
 	double S_max=0;    // 最大跳度
-	EN_PlanMode enPlanmode;      //运动模式
+	EN_PlanningMode enPlanmode;      //运动模式
 
 	// 相等运算符：逐个成员比较
 	bool operator==(const ST_PlanParams& other) const

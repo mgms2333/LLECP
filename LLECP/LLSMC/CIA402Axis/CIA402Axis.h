@@ -25,6 +25,7 @@ class CIA402Axis
 protected:
     //connfig
     bool m_bVirtual;
+    bool m_bBusy;
     uint32_t m_nAxisID;
     ST_CIA402_PDO m_stPDO_Virtual;
     //pdo同步
@@ -77,6 +78,7 @@ public:
     int nCmdModeOpration;    // 当前指令的操作模式（例如 Profile Position、Cyclic Synchronous Position 等）
     int nActModeOpration;    // 从站反馈的操作模式
     int nAxisErrorID;        // 轴错误代码（Fault ID）
+    bool bBusy;
     
     //state
     bool bVirtual;    
@@ -90,7 +92,6 @@ public:
     int nEncodeDirection;
     int nEncodeHomePos;
     double dCurrentScales;
-    double dTorqueFeedforwardScale;
     double dVelocityScale;
     int nCurrentDirection;
     double dPositive;
@@ -191,8 +192,8 @@ public:
 
 protected:
     int Axis_SetTargetPosition(double TargetPosition);
-
-
+    int Axis_SetTargetVelocity(double TargetVelocity);
+    int Axis_SetTargetTorque(double TargetTorque);
 //CIA402AxisGeneral
 protected:
     //轴的实时函数

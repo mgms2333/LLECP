@@ -708,11 +708,11 @@ int Trapezoid_plan(ST_PlanParams stsetParam, ST_PlanParams& stActParam, ST_PlanD
     Ve = stsetParam.v1;
     Vmax = stsetParam.V_max;
     Amax = stsetParam.A_amax;
-    if(stsetParam.enPlanmode == enPosition_PlanMode)
+    if(stsetParam.enPlanmode == enPositionPlanningMode)
     {
         planmode = 1;
     }
-    if(stsetParam.enPlanmode == enVelocity_PlanMode)
+    if(stsetParam.enPlanmode == enVelocityPlanningMode)
     {
         planmode = 2;
     }
@@ -1021,11 +1021,11 @@ int S_curve_plan(ST_PlanParams stsetParam, ST_PlanParams& stActParam, ST_PlanDat
     a_min = -stsetParam.A_dmax;
     j_max = stsetParam.J_max;
     j_min = -stsetParam.J_max;
-    if(stsetParam.enPlanmode == enPosition_PlanMode)
+    if(stsetParam.enPlanmode == enPositionPlanningMode)
     {
         planmode = 1;
     }
-    if(stsetParam.enPlanmode == enVelocity_PlanMode)
+    if(stsetParam.enPlanmode == enVelocityPlanningMode)
     {
         planmode = 2;
     }
@@ -1447,11 +1447,11 @@ int FifteenSeg_plan(ST_PlanParams stsetParam, ST_PlanParams& stActParam, ST_Plan
     J_dmax = stsetParam.J_max;
     S_max = stsetParam.S_max;
     plan = false;
-    if(stsetParam.enPlanmode == enPosition_PlanMode)
+    if(stsetParam.enPlanmode == enPositionPlanningMode)
     {
         planmode = 1;
     }
-    if(stsetParam.enPlanmode == enVelocity_PlanMode)
+    if(stsetParam.enPlanmode == enVelocityPlanningMode)
     {
         planmode = 2;
     }
