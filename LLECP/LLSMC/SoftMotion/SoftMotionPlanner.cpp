@@ -27,10 +27,9 @@ int SoftMotion::AxisMotionPlanner(CIA402Axis* pAxis)
     while(itMotionData->bMotionDone)
     {
         itMotionData ++;
-        //所有点位运动完成，清除所有点位
+        //所有点位运动完成
         if(pAxis->m_stSoftMotionEX.vMotionUint.end() == itMotionData)
         {
-            pAxis->m_stSoftMotionEX.vMotionUint.clear();
             //切换状态
             pAxis->Axis_SetAxisState(EN_AxisMotionState::motionState_standstill);
             return AEC_SUCCESSED;
@@ -39,11 +38,6 @@ int SoftMotion::AxisMotionPlanner(CIA402Axis* pAxis)
     pAxis->Axis_SetAxisState(EN_AxisMotionState::motionState_discrete_motion);
     //当前迭代器内是正在运动的点位
     ST_PlanningMotionParam stMotionParam = itMotionData->PlanningMotionParam;
-    //绝对运动做偏移
-    if(enRelativMotion == itMotionData->MoveType)
-    {
-        stMotionParam.pos = pAxis->dActPosition + stMotionParam.pos;
-    }
     //正在运行当前点位
     if(pAxis->m_stSoftMotionEX.stSoftMotionMotionParam == stMotionParam)
     {
@@ -51,28 +45,43 @@ int SoftMotion::AxisMotionPlanner(CIA402Axis* pAxis)
         FifteenSeg_Inter(m_vSoftMotionPlanParams[pAxis->nAxisID].stActParam,m_vSoftMotionPlanParams[pAxis->nAxisID].trackData,
                         pAxis->m_stSoftMotionEX.dMotionTime,m_vSoftMotionPlanParams[pAxis->nAxisID].stInterData);
         //开始运动 
+        printf("CmdPosition:%f\n",m_vSoftMotionPlanParams[pAxis->nAxisID].stInterData.P);
+        if(10>m_vSoftMotionPlanParams[pAxis->nAxisID].stInterData.P)
+        {
+            printf("????");
+        }
         pAxis->Axis_SetTargetPosition(m_vSoftMotionPlanParams[pAxis->nAxisID].stInterData.P);
         //时间帧加
         pAxis->m_stSoftMotionEX.dMotionTime += m_dSoftMotionCycle;
     }
     else//新点位
     {
+        ST_PlanningMotionParam stMotionParam_Run = stMotionParam;
+        //绝对运动做偏移
+        if(enRelativMotion == itMotionData->MoveType)
+        {
+            stMotionParam_Run.pos = pAxis->dActPosition + stMotionParam_Run.pos;
+        }
         pAxis->m_stSoftMotionEX.stSoftMotionMotionParam = stMotionParam;
         pAxis->m_stSoftMotionEX.dMotionTime = 0;
-        ST_PlanParams stsetParam{pAxis->dActPosition,stMotionParam.pos,pAxis->dActVelocity,0,stMotionParam.vel,stMotionParam.acc,stMotionParam.dec,stMotionParam.jerk,MaxSnap,stMotionParam.PlanningMode};
+        ST_PlanParams stsetParam{pAxis->dActPosition,stMotionParam_Run.pos,pAxis->dActVelocity,0,stMotionParam_Run.vel,stMotionParam_Run.acc,stMotionParam_Run.dec,stMotionParam_Run.jerk,MaxSnap,stMotionParam_Run.PlanningMode};
         FifteenSeg_plan(stsetParam,m_vSoftMotionPlanParams[pAxis->nAxisID].stActParam,m_vSoftMotionPlanParams[pAxis->nAxisID].trackData);
         //得到当前帧的运动参数
         FifteenSeg_Inter(m_vSoftMotionPlanParams[pAxis->nAxisID].stActParam,m_vSoftMotionPlanParams[pAxis->nAxisID].trackData,
                         pAxis->m_stSoftMotionEX.dMotionTime,m_vSoftMotionPlanParams[pAxis->nAxisID].stInterData);
         //开始运动 
+        printf("CmdPosition:%f\n",m_vSoftMotionPlanParams[pAxis->nAxisID].stInterData.P);
         pAxis->Axis_SetTargetPosition(m_vSoftMotionPlanParams[pAxis->nAxisID].stInterData.P);
         //时间帧加
         pAxis->m_stSoftMotionEX.dMotionTime += m_dSoftMotionCycle;
     }
     //运动完成检测
-    if(pAxis->m_stSoftMotionEX.dMotionTime > m_vSoftMotionPlanParams[pAxis->nAxisID].trackData.T)
+    if((enPositionPlanningMode == itMotionData->PlanningMotionParam.PlanningMode)||(enStopPlanningMode == itMotionData->PlanningMotionParam.PlanningMode))
     {
-        itMotionData->bMotionDone = true;
+        if(pAxis->m_stSoftMotionEX.dMotionTime > m_vSoftMotionPlanParams[pAxis->nAxisID].trackData.T)
+        {
+            itMotionData->bMotionDone = true;
+        }
     }
     return AEC_SUCCESSED;
 }

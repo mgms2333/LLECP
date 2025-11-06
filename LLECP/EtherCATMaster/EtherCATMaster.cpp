@@ -23,7 +23,7 @@ EtherCATMaster::EtherCATMaster(uint8_t nMasterIndex)
     m_nMasterIndex = nMasterIndex;
     m_bIsConfigDc = false;
     m_nShitTime = 0;
-    m_fCycle = 1.0;
+    m_fCycle = 0.5;
     m_bIsSimulation;
     m_sNetWork = "enp2s0";
 
@@ -208,13 +208,13 @@ int EtherCATMaster::InitRT_Thread()
         ecx_statecheck(&m_ctx,0, EC_STATE_OPERATIONAL, 50000);
         // uint32 Isize, Osize;
         // ecx_readPDOmap(&m_ctx,1, &Osize, &Isize);
-         writeSDO_INT(1, 0x1c12, 0x00, 0x00);
-         writeSDO_INT(1, 0x1c12, 0x01, 0x1600);
-         writeSDO_INT(1, 0x1c12, 0x00, 0x01);
+         // writeSDO_INT(1, 0x1c12, 0x00, 0x00);
+         // writeSDO_INT(1, 0x1c12, 0x01, 0x1600);
+         // writeSDO_INT(1, 0x1c12, 0x00, 0x01);
 
-         writeSDO_INT(1, 0x1c13, 0x00, 0x00);
-         writeSDO_INT(1, 0x1c13, 0x01, 0x1a00);
-         writeSDO_INT(1, 0x1c13, 0x00, 0x01);
+         // writeSDO_INT(1, 0x1c13, 0x00, 0x00);
+         // writeSDO_INT(1, 0x1c13, 0x01, 0x1a00);
+         // writeSDO_INT(1, 0x1c13, 0x00, 0x01);
          ecx_readstate(&m_ctx);
          for (cnt = 1; cnt <= m_ctx.slavecount; cnt++)
          {
@@ -294,13 +294,13 @@ int EtherCATMaster::InitSlave()
       case 27:
           m_v_slave.clear();
           pSlave = new NETX_50_RE_ECS();
-        //  writeSDO_INT(i, 0x1c12, 0x00, 0x00);
-        //  writeSDO_INT(i, 0x1c12, 0x01, 0x1600);
-        //  writeSDO_INT(i, 0x1c12, 0x00, 0x01);
+         writeSDO_INT(i, 0x1c12, 0x00, 0x00);
+         writeSDO_INT(i, 0x1c12, 0x01, 0x1600);
+         writeSDO_INT(i, 0x1c12, 0x00, 0x01);
 
-        //  writeSDO_INT(i, 0x1c13, 0x00, 0x00);
-        //  writeSDO_INT(i, 0x1c13, 0x01, 0x1a00);
-        //  writeSDO_INT(i, 0x1c13, 0x00, 0x01);
+         writeSDO_INT(i, 0x1c13, 0x00, 0x00);
+         writeSDO_INT(i, 0x1c13, 0x01, 0x1a00);
+         writeSDO_INT(i, 0x1c13, 0x00, 0x01);
           pSlave->InitPDOmap(&m_ctx.slavelist[i]);
           m_v_slave.push_back(pSlave);
           break;

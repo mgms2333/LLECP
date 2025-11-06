@@ -1,40 +1,38 @@
-#include"MC_MoveAbsolute.h"
-MC_MoveAbsolute::MC_MoveAbsolute(/* args */)
+#include"MC_MoveVelocity.h"
+MC_MoveVelocity::MC_MoveVelocity(/* args */)
 {
 }
 
-MC_MoveAbsolute::~MC_MoveAbsolute()
+MC_MoveVelocity::~MC_MoveVelocity()
 {
 }
 
-void MC_MoveAbsolute::operator()(CIA402Axis* axis)
+void MC_MoveVelocity::operator()(CIA402Axis* axis)
 {
     this->Execute();
 }
-void MC_MoveAbsolute::operator()(CIA402Axis* axis,bool bExecute,double dPosition,double dVelocity,double dAcceleration,double dDeceleration,double dJerk,EN_Direction enDirection,EN_BufferMode enBufferMode,
-                    bool& bDone,bool& bBusy,bool& bCommandAborted,bool& bError,int& ErrorID)
+void MC_MoveVelocity::operator()(CIA402Axis* axis,bool bExecute,double dVelocity,double dAcceleration,double dDeceleration,double dJerk,EN_Direction enDirection,
+                    bool& bInVelocity,bool& bBusy,bool& bCommandAborted,bool& bError,int& ErrorID)
 {
     m_pCIA402Axis                                   = axis;
     m_bExecute                                      = bExecute;
-    m_MotionUint_New.PlanningMotionParam.pos            = dPosition;
     m_MotionUint_New.PlanningMotionParam.vel            = dVelocity;
     m_MotionUint_New.PlanningMotionParam.acc            = dAcceleration;
     m_MotionUint_New.PlanningMotionParam.dec            = dDeceleration;
     m_MotionUint_New.PlanningMotionParam.jerk           = dJerk;
     m_MotionUint_New.PlanningMotionParam.Direction      = enDirection;
-    m_MotionUint_New.PlanningMotionParam.PlanningMode   = enPositionPlanningMode;
-    m_MotionUint_New.BufferMode                         = enBufferMode;
-    m_MotionUint_New.MoveType                           = enAbsoluteMotion;
+    m_MotionUint_New.PlanningMotionParam.PlanningMode   = enVelocityPlanningMode;
+    m_MotionUint_New.MoveType                           = enMoveTypeNull;
     m_MotionUint_New.fbID                               = this;
     this->Execute();
-    bDone = m_bDone;
+    bInVelocity = m_bInVelocity;
     bBusy = m_bBusy;
     bCommandAborted = m_bCommandAborted;
     bError = m_bError;
     ErrorID = m_nErrorID;
 }
 
-void MC_MoveAbsolute::Execute()
+void MC_MoveVelocity::Execute()
 {
     if(nullptr == m_pCIA402Axis)
     {
@@ -106,7 +104,7 @@ void MC_MoveAbsolute::Execute()
         }
         else
         {
-            m_bBusy             = false;
+            m_bBusy             = true;
         }
     }
     //move被插其他块

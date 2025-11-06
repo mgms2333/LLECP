@@ -23,7 +23,6 @@ CIA402Axis::~CIA402Axis(){}
 int CIA402Axis::Axis_InitMap(ST_SMCInitMap st_map)
 {
     m_st_map = st_map;
-    int32_t s = *m_st_map.pActualPosition;
     return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_SetAxisID(uint16_t id)
@@ -64,6 +63,15 @@ int CIA402Axis::Axis_PushMotionUint(const ST_MotionUint STMotionUint)
     {
         m_stSoftMotionEX.vMotionUint.clear();
     }
+    //首点位下发清理缓存
+    if(motionState_standstill == m_enAxisMotionState)
+    {
+        m_stSoftMotionEX.vMotionUint.clear();
+    }
+    if(enPositionPlanningMode != STMotionUint.PlanningMotionParam.PlanningMode)
+    {
+        m_stSoftMotionEX.vMotionUint.clear();
+    }
     //缓存点位
     m_stSoftMotionEX.vMotionUint.push_back(STMotionUint);
     return AEC_SUCCESSED;
@@ -74,15 +82,15 @@ int CIA402Axis::Axis_GetMotionUint(ST_MotionUint& stMotionUint)
     int res = m_stSoftMotionEX.vMotionUint.size();
     if(0 == res)
     {
-        return ACE_PARAMETER_ERROR;
+        return 0;
     }
     for(auto it = m_stSoftMotionEX.vMotionUint.begin();it<m_stSoftMotionEX.vMotionUint.end();it++)
     {
+        stMotionUint = *it;
         if(it->bMotionDone)
         {
             continue;
         }
-        stMotionUint = *it;
     }
     return AEC_SUCCESSED;
 }

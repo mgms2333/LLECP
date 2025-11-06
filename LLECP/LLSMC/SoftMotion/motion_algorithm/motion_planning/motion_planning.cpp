@@ -1966,7 +1966,6 @@ int FifteenSeg_Inter(ST_PlanParams stActParam, ST_PlanData trackData, double t, 
         V = (S_max / 6.0) * pow(T - t, 3) + v1;
         P = -(S_max / 24.0) * pow(T - t, 4) - v1 * (T - t) + q1;
     }
-
     stData.S = direction * S;
     stData.J = direction * J;
     stData.A = direction * A;

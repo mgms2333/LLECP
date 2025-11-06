@@ -34,7 +34,7 @@ enum EN_PlanningMode
     enVelocityPlanningMode = 2,//速度模式
     enAccelerationPlanningMode = 3, //加速度模式
 
-    enStop = 99 //停止模式
+    enStopPlanningMode = 99 //停止模式
 };
 
 

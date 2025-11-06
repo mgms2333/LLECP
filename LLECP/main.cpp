@@ -46,12 +46,14 @@ int RT_ScripTest()
 
 
 MC_PowerOn fbMC_PowerOn;
+MC_PowerOff fbMC_PowerOff;
 MC_InitResetAxis fbMC_InitResetAxis;
 MC_MoveAbsolute fbMoveAbsolute;
+MC_MoveRelative fbMoveRelative;
+MC_MoveVelocity fbMoveVelocity;
 SoftMotion* pSoftMotion;
 std::vector<CIA402Axis*> v_Axis;
-bool Enabel,bBusy,bDone, bError,bCommandAborted;int nErrorID;
-std::thread RT_Thread;
+bool Enabel,bBusy,bDone,bInVelocity, bError,bCommandAborted;int nErrorID;
 timespec ti_Sleep;
 int TEST()
 {
@@ -61,7 +63,7 @@ int TEST()
     pMaster->ConstructionCIA402AxisVec(&v_Axis);
     pSoftMotion = new SoftMotion(v_Axis);
     pSoftMotion->SetSoftMotionCycle(0.001);
-    struct timespec ts{0, 1000000};   // 0 秒 + 1 000 000 纳秒 = 1 毫秒
+    struct timespec ts{0, 500000};   // 0 秒 + 1 000 000 纳秒 = 1 毫秒
     printf("InitReset\n");
     fbMC_InitResetAxis(v_Axis[0],false,bBusy,bDone,bError,nErrorID);
     while (true)
@@ -76,29 +78,60 @@ int TEST()
     }
     printf("enable\n");
     fbMC_PowerOn(v_Axis[0],false,bBusy,bDone,bError,nErrorID);
+    int c = 0;
     while (true)
     {
         fbMC_PowerOn(v_Axis[0],true,bBusy,bDone,bError,nErrorID);
         if(bDone)
         {
             double pos = v_Axis[0]->dActPosition;
-            printf("MovePos:%f\n",pos+2);
-            fbMoveAbsolute(v_Axis[0],false,pos+4000000000000,1,1,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
-            fbMoveAbsolute(v_Axis[0],true,pos+4000000000000,1,0.1,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
+            double rel = 5;
+            printf("AxisPos:%f\n",pos);
+            // printf("SetMovePos:%f\n",pos+rel);
+            // fbMoveRelative(v_Axis[0],false,rel,0.5,0.5,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
+            // fbMoveRelative(v_Axis[0],true,rel,0.5,0.5,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
+            fbMoveVelocity(v_Axis[0],false,0.5,10,10,100,EN_Direction::enPositive,bInVelocity,bBusy,bCommandAborted,bError,nErrorID);
+            fbMoveVelocity(v_Axis[0],true,0.5,10,10,100,EN_Direction::enPositive,bInVelocity,bBusy,bCommandAborted,bError,nErrorID);
             break;
         }
         pSoftMotion->SoftMotionRun();
         nanosleep(&ts, nullptr);
     }
-    printf("Start\n");
     while (true)
     {
-        
         pSoftMotion->SoftMotionRun();
-        //printf("pos:%f\n",v_Axis[0]->dActPosition);
         nanosleep(&ts, nullptr);
     }
-
+    while (true)
+    {
+        fbMoveRelative(v_Axis[0],true,5,0.5,0.5,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
+        if(bDone)
+        {
+            c = c+1;
+            if(c>5000)
+            {
+                printf("EndPos:%f\n",v_Axis[0]->dActPosition);
+                printf("disable\n");
+                fbMC_PowerOff(v_Axis[0],false,bBusy,bDone,bError,nErrorID);
+                break;
+            }
+        }
+        pSoftMotion->SoftMotionRun();
+        nanosleep(&ts, nullptr);
+    }
+    while (true)
+    {
+        if(!bDone)
+        {
+            fbMC_PowerOff(v_Axis[0],true,bBusy,bDone,bError,nErrorID);
+            if(bDone)
+            {
+                printf("finish\n");
+            }
+        }
+        pSoftMotion->SoftMotionRun();
+        nanosleep(&ts, nullptr);
+    }
     return 0;
 } 
 

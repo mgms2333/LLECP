@@ -22,9 +22,9 @@ void MC_Stop::operator()(CIA402Axis* axis,bool bExecute,double dPosition,double 
     m_MotionUint_New.PlanningMotionParam.dec            = dDeceleration;
     m_MotionUint_New.PlanningMotionParam.jerk           = dJerk;
     m_MotionUint_New.PlanningMotionParam.Direction      = enDirection;
-    m_MotionUint_New.PlanningMotionParam.PlanningMode   = enStop;
+    m_MotionUint_New.PlanningMotionParam.PlanningMode   = enStopPlanningMode;
     m_MotionUint_New.BufferMode                         = enBufferMode;
-    m_MotionUint_New.MoveType                           = enAbsoluteMotion;
+    m_MotionUint_New.MoveType                           = enRelativMotion;
     m_MotionUint_New.fbID                               = this;
     this->Execute();
     bDone = m_bDone;

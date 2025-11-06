@@ -16,6 +16,8 @@
 #include "AxisMovement/MC_FollowTorque.h"
 #include "AxisMovement/MC_FollowVelocity.h"
 #include "AxisMovement/MC_MoveAbsolute.h"
+#include "AxisMovement/MC_MoveRelative.h"
+#include "AxisMovement/MC_MoveVelocity.h"
 #include "AxisMovement/MC_SetPosition.h"
 #include "AxisMovement/MC_Stop.h"
 

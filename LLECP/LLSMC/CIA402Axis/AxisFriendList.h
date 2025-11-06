@@ -9,6 +9,8 @@
     friend class MC_FollowVelocity; \
     friend class MC_InitResetAxis; \
     friend class MC_MoveAbsolute; \
+    friend class MC_MoveRelative; \
+    friend class MC_MoveVelocity; \
     friend class MC_PowerOff; \
     friend class MC_PowerOn; \
     friend class MC_ReadActualPosition; \
