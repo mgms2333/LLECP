@@ -123,7 +123,31 @@ struct ST_MotionUint
     bool bMotionDone;
 };
 
+struct ST_Factor
+{
+    double dVelFactor;
+    double dAccFactor;
+    double dJerkFactor;
+    ST_Factor()
+    {
+        dVelFactor = 1;
+        dAccFactor = 1;
+        dJerkFactor = 1;
+    }
+    // == 运算符重载
+    bool operator==(const ST_Factor& other) const
+    {
+        auto eq = [](double a, double b) { return std::fabs(a - b) < 1e-9; };
 
+        return eq(dVelFactor,  other.dVelFactor)  &&
+               eq(dAccFactor,  other.dAccFactor)  &&
+               eq(dJerkFactor,  other.dJerkFactor);
+    }
+    bool operator!=(const ST_Factor& other) const
+    {
+        return !(*this == other);
+    }
+};
 
 struct ST_SoftMotionData
 {
@@ -133,6 +157,10 @@ struct ST_SoftMotionData
     ST_PlanningMotionParam stSoftMotionMotionParam;
     //运动时间帧
     double dMotionTime;
+    //减速比 
+    ST_Factor m_stFactor;
+    //重新规划标志
+    bool bReplan;
 };
 
 

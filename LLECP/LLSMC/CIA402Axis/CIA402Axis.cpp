@@ -35,7 +35,11 @@ int CIA402Axis::Axis_SetAxisState(EN_AxisMotionState enAxisMotionState)
     m_enAxisMotionState = enAxisMotionState;
     return AEC_SUCCESSED;
 }
-
+int CIA402Axis::Axis_SetOverride(ST_Factor stFactor)
+{
+    m_stSoftMotionEX.m_stFactor = stFactor;
+    return AEC_SUCCESSED;
+}
 EN_AxisMotionState CIA402Axis::Axis_ReadAxisState()
 {
     return m_enAxisMotionState;
@@ -53,6 +57,16 @@ bool CIA402Axis::Axis_CheckError()
 
 int CIA402Axis::Axis_ResetError()
 {
+    return AEC_SUCCESSED;
+}
+
+int CIA402Axis::Axis_SetInterFrame(ST_InterParams stInterParamsData)
+{
+    m_stInterParamsData = stInterParamsData;
+    dSetVelocity_s = stInterParamsData.V;
+    dSetAcceleration_s = stInterParamsData.A;
+    dSetJerk_s = stInterParamsData.J;
+    dSetSnap_s = stInterParamsData.S;
     return AEC_SUCCESSED;
 }
 

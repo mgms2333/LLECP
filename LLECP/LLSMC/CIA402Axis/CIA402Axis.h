@@ -42,8 +42,8 @@ protected:
     EN_AxisMotionState m_enAxisMotionState;//sm
     //SoftMotion交换数据
     ST_SoftMotionData m_stSoftMotionEX;
-
-
+    //插补帧
+    ST_InterParams  m_stInterParamsData;
     
 
 public:
@@ -60,7 +60,11 @@ public:
     // --- 补偿或控制器内部计算值 ---
     double dSetVelocity_c;    // 修正后速度（补偿）
     double dSetAcceleration_c;// 修正后加速度
-    double dSetJerk_c;        // 修正后跃度
+    double dSetJerk_c;        // 修正后加加速度
+    double dSetVelocity_s;    // SoftMotion速度
+    double dSetAcceleration_s;// SoftMotion修正后加速度
+    double dSetJerk_s;        // SoftMotion修正后加加速度
+    double dSetSnap_s; 
     double dSetCurrent;       // 目标电流/力矩（A 或 %）
     int    nActualPosition_PDO; // 实际位置（PDO原始值）
     double dActPosition;        // 实际位置（工程单位）
@@ -103,11 +107,12 @@ public:
     int Axis_SetAxisID(uint16_t id);
 protected:
     int Axis_SetAxisState(EN_AxisMotionState enAxisMotionState);
+    int Axis_SetOverride(ST_Factor stFactor);
     EN_AxisMotionState Axis_ReadAxisState();
     bool Axis_CheckError(int& nErrorID);
     bool Axis_CheckError();
     int Axis_ResetError();
-
+    int Axis_SetInterFrame(ST_InterParams stInterParamsData);
 
     //PDO镜像直接控制pdo
 

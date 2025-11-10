@@ -111,5 +111,23 @@ int S_curve_Inter(ST_PlanParams stActParam, ST_PlanData trackData, double t, ST_
 
 int FifteenSeg_plan(ST_PlanParams stsetParam, ST_PlanParams& stActParam, ST_PlanData& trackData);
 int FifteenSeg_Inter(ST_PlanParams stActParam, ST_PlanData trackData, double t, ST_InterParams& stData);
+/**
+ * @brief 停止规划
+ * 周期调用
+ * 本函数用于执行运动过程中被中断进行停止规划，默认降到速度为0。
+ * 根据是否有加加速度决定T型降速还是7段S降速
+ * @param q0      [in]   当前位置
+ * @param v0      [in]   当前速度
+ * @param a0      [in]   当前加速度
+ * @param A_max   [in]   最大减速度
+ * @param J_max   [in]   最大加加速度
+ * @param t       [in]   采样时间
+ * @param T       [out]  停止总时间
+ * @param stData  [out]  输出运动数据
+ *
+ * @return err   0，计算正常输出
+ * @note 调用方必须检查返回值，以确保结果有效。
+ */
 
+int stopmotion(double q0, double v0, double a0, double A_max, double J_max, double t,double& T,ST_InterParams& stData);
 #endif

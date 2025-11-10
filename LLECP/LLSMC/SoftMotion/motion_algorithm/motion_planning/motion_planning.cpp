@@ -1449,10 +1449,12 @@ int FifteenSeg_plan(ST_PlanParams stsetParam, ST_PlanParams& stActParam, ST_Plan
     plan = false;
     if(stsetParam.enPlanmode == enPositionPlanningMode)
     {
+        stActParam.enPlanmode = enPositionPlanningMode;
         planmode = 1;
     }
     if(stsetParam.enPlanmode == enVelocityPlanningMode)
     {
+        stActParam.enPlanmode = enVelocityPlanningMode;
         planmode = 2;
     }
 
@@ -1823,18 +1825,6 @@ int FifteenSeg_Inter(ST_PlanParams stActParam, ST_PlanData trackData, double t, 
     J = 0;
     S = 0;
 
-    // 调整方向
-    //double direction = (q1 > q0) ? 1.0 : -1.0;
-    //v0 = direction * v0;
-    //v1 = direction * v1;
-    //V_max = direction * V_max;
-    //S_max = direction * S_max;
-    //J_amax = direction * J_amax;
-    //J_dmax = direction * J_dmax;
-    //A_amax = direction * A_amax;
-    //A_dmax = direction * A_dmax;
-
-    
     if ((0 <= t) && (t <= Tsa)) {
         // 加速段 - 第一部分
         S = S_max;
@@ -1966,11 +1956,161 @@ int FifteenSeg_Inter(ST_PlanParams stActParam, ST_PlanData trackData, double t, 
         V = (S_max / 6.0) * pow(T - t, 3) + v1;
         P = -(S_max / 24.0) * pow(T - t, 4) - v1 * (T - t) + q1;
     }
+    else {
+        if(stActParam.enPlanmode == enPositionPlanningMode) //位置模式，超时时间，位置不动
+        {
+            S = 0;
+            J = 0;
+            A = 0;
+            V = 0;
+            P = q1;       
+        }else if(stActParam.enPlanmode == enVelocityPlanningMode)                                   //速度模式，超时时间，匀速运动      
+        {
+            S = 0;
+            J = 0;
+            A = 0;
+            V = V_max;
+            P = (S_max / 24.0) * pow(T - Ta, 4) + 0.5 * A_amax * (2 * T - Ta) * (Ta - Tja) + v0 * t + q0  + V_max*(t-T);         
+        }
+    }
+
     stData.S = direction * S;
     stData.J = direction * J;
     stData.A = direction * A;
     stData.V = direction * V;
     stData.P = direction * P;
+
+    return err;
+}
+
+
+int stopmotion(double q0, double v0, double a0, double A_max, double J_max, double t,double& T,ST_InterParams& stData)
+{
+    const double v1 = 0.0; // 目标速度 = 0
+    int err = 0;
+
+    if(abs(A_max)<=Zero)
+    {
+        err = Denominator_is_zero;
+        return err;
+    }
+    // === T 型（无加加速度）===
+    if (fabs(J_max) <= Zero)
+    {
+        double Td = fabs(v0 - v1) / A_max;
+
+        if (t < Td)
+        {
+            double A = -A_max * (v0 > 0 ? 1 : -1);
+            stData.J = 0;
+            stData.A = A;
+            stData.V = v0 + A * t;
+            stData.P = q0 + v0 * t + 0.5 * A * t * t;
+        }
+        else
+        {
+
+            stData.J = 0;
+            stData.A = 0;
+            stData.V = 0;
+            stData.P = q0 + v0 * Td + 0.5 * (-A_max) * Td * Td;
+        }
+        T =  Td;
+        return err;
+    }
+
+    // === S 型 ===
+    double Ts, V0_s, q0_s;
+    double der = (a0 > 0) ? 1 : -1;
+
+    if (fabs(a0) <= Zero)
+    {
+        Ts = 0;
+        V0_s = v0;
+        q0_s = q0;
+    }
+    else
+    {
+        if(abs(J_max)<=Zero)
+        {
+            err = Denominator_is_zero;
+            return err;
+        }
+        Ts = fabs(a0 / J_max);
+        double J_s = -der * J_max;
+        q0_s = q0 + v0 * Ts + 0.5 * a0 * Ts * Ts + (1.0/6.0) * J_s * Ts * Ts * Ts;
+        V0_s = v0 + a0 * Ts + 0.5 * J_s * Ts * Ts;
+    }
+
+    double Tjd, Td, A_peak;
+
+    if (fabs(V0_s - v1) * J_max < A_max * A_max)
+    {
+        Tjd = sqrt(fabs(V0_s - v1) / J_max);
+        Td = 2 * Tjd;
+        A_peak = J_max * Tjd;
+    }
+    else
+    {
+        Tjd = A_max / J_max;
+        Td = Tjd + fabs(V0_s - v1) / A_max;
+        A_peak = A_max;
+    }
+
+    T = Ts + Td;
+
+    // 预计算关键点
+    double v1_s = V0_s - 0.5 * J_max * Tjd * Tjd;
+    double q1_s = q0_s + V0_s * Tjd - (1.0/6.0) * J_max * Tjd * Tjd * Tjd;
+
+    double v2_s = v1_s - A_peak * (Td - 2 * Tjd);
+    double q2_s = q1_s + v1_s * (Td - 2 * Tjd) - 0.5 * A_peak * (Td - 2 * Tjd) * (Td - 2 * Tjd);
+
+    // === 分段计算 ===
+    if (t <= 0)
+    {
+        T = 0;
+        return err;
+    }
+    else if (t <= Ts)
+    {
+        double J = -der * J_max;
+        stData.J = J;
+        stData.A = a0 + J * t;
+        stData.V = v0 + a0 * t + 0.5 * J * t * t;
+        stData.P = q0 + v0 * t + 0.5 * a0 * t * t + (1.0/6.0) * J * t * t * t;
+    }
+    else if (t <= Ts + Tjd)
+    {
+        double tau = t - Ts;
+        stData.J = -J_max;
+        stData.A = -J_max * tau;
+        stData.V = V0_s - 0.5 * J_max * tau * tau;
+        stData.P = q0_s + V0_s * tau - (1.0/6.0) * J_max * tau * tau * tau;
+    }
+    else if (t <= Ts + Td - Tjd)
+    {
+        double tau = t - Ts - Tjd;
+        stData.J = 0;
+        stData.A = -A_peak;
+        stData.V = v1_s - A_peak * tau;
+        stData.P = q1_s + v1_s * tau - 0.5 * A_peak * tau * tau;
+    }
+    else if (t <= T)
+    {
+        double tau = t - (Ts + Td - Tjd);
+        stData.J = J_max;
+        stData.A = -A_peak + J_max * tau;
+        stData.V = v2_s - A_peak * tau + 0.5 * J_max * tau * tau;
+        stData.P = q2_s + v2_s * tau - 0.5 * A_peak * tau * tau + (1.0/6.0) * J_max * tau * tau * tau;
+    }
+    else
+    {
+        stData.J = 0;
+        stData.A = 0;
+        stData.V = 0;
+        stData.P = q2_s;
+    }
 
     return err;
 }

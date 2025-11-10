@@ -6,7 +6,7 @@
 class SMbasic
 {
 protected:
-    CIA402Axis* m_pCIA402Axis;
+    CIA402Axis* m_pCIA402Axis = nullptr;
     SMCTimer m_Timer;
     SMCTimer m_TimerTimeout;
 

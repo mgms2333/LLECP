@@ -43,6 +43,8 @@ struct ST_PlanParams {
 	double q1=0;      // 目标位置  
 	double v0=0;      // 起始速度
 	double v1=0;      // 结束速度
+	double a0=0;      // 起始加速度
+	double a1=0;      // 结束加速度
 	double V_max=0;    // 最大速度
 	double A_amax=0;    // 最大加速度
 	double A_dmax=0;    // 最大加速度
@@ -73,8 +75,8 @@ struct ST_PlanParams {
 			fabs(v0 - other.v0) > ITERATIVESTEPS ||
 			fabs(v1 - other.v1) > ITERATIVESTEPS ||
 			fabs(V_max - other.V_max) > ITERATIVESTEPS ||
-			fabs(A_amax - other.A_amax) < ITERATIVESTEPS ||
-			fabs(A_dmax - other.A_dmax) < ITERATIVESTEPS ||
+			fabs(A_amax - other.A_amax) > ITERATIVESTEPS ||
+			fabs(A_dmax - other.A_dmax) > ITERATIVESTEPS ||
 			fabs(J_max - other.J_max) > ITERATIVESTEPS ||
 			fabs(S_max - other.S_max) > ITERATIVESTEPS;
 	}

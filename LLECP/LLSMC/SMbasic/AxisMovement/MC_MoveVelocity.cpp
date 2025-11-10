@@ -97,15 +97,16 @@ void MC_MoveVelocity::Execute()
     //第一个点就是这个点
     if(this == FirstMotionUint.fbID)
     {
-        //运动完成监测
-        if(FirstMotionUint.bMotionDone)
-        {
-            m_bDone             = true;
-        }
-        else
-        {
-            m_bBusy             = true;
-        }
+        //运动完成监测（速度运动理论上不会有完成标志）
+        // if(FirstMotionUint.bMotionDone)
+        // {
+        //     m_bDone             = true;
+        // }
+        // else
+        // {
+        //     m_bBusy             = true;
+        // }
+        m_bBusy             = true;
     }
     //move被插其他块
     else

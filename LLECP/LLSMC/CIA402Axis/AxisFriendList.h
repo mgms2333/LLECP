@@ -17,6 +17,7 @@
     friend class MC_Reset; \
     friend class MC_SetEncodeRatio; \
     friend class MC_SetGearingRatio; \
+    friend class MC_SetOverride; \
     friend class MC_SetPosition; \
     friend class MC_SetSetSWLimit; \
     friend class MC_Stop; \

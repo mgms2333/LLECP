@@ -46,6 +46,7 @@ int RT_ScripTest()
 
 
 MC_PowerOn fbMC_PowerOn;
+MC_Stop fbMC_Stop;
 MC_PowerOff fbMC_PowerOff;
 MC_InitResetAxis fbMC_InitResetAxis;
 MC_MoveAbsolute fbMoveAbsolute;
@@ -57,6 +58,7 @@ bool Enabel,bBusy,bDone,bInVelocity, bError,bCommandAborted;int nErrorID;
 timespec ti_Sleep;
 int TEST()
 {
+    double rel = 5;
     v_Axis.clear();
     EtherCATMaster* pMaster = new EtherCATMaster(0);  
     pMaster->StartMaster();
@@ -85,26 +87,28 @@ int TEST()
         if(bDone)
         {
             double pos = v_Axis[0]->dActPosition;
-            double rel = 5;
             printf("AxisPos:%f\n",pos);
-            // printf("SetMovePos:%f\n",pos+rel);
-            // fbMoveRelative(v_Axis[0],false,rel,0.5,0.5,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
-            // fbMoveRelative(v_Axis[0],true,rel,0.5,0.5,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
-            fbMoveVelocity(v_Axis[0],false,0.5,10,10,100,EN_Direction::enPositive,bInVelocity,bBusy,bCommandAborted,bError,nErrorID);
-            fbMoveVelocity(v_Axis[0],true,0.5,10,10,100,EN_Direction::enPositive,bInVelocity,bBusy,bCommandAborted,bError,nErrorID);
+            printf("SetMovePos:%f\n",pos+rel);
+            fbMoveAbsolute(v_Axis[0],false,0,0.5,0.1,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
+            fbMoveAbsolute(v_Axis[0],true,0,0.5,0.1,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
+            // fbMoveRelative(v_Axis[0],false,rel,0.5,0.1,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
+            // fbMoveRelative(v_Axis[0],true,rel,0.5,0.1,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
+            // fbMoveVelocity(v_Axis[0],false,0.5,0.05,10,100,EN_Direction::enPositive,bInVelocity,bBusy,bCommandAborted,bError,nErrorID);
+            // fbMoveVelocity(v_Axis[0],true,0.5,0.05,10,100,EN_Direction::enPositive,bInVelocity,bBusy,bCommandAborted,bError,nErrorID);
             break;
         }
         pSoftMotion->SoftMotionRun();
         nanosleep(&ts, nullptr);
     }
+    // while (true)
+    // {
+    //     pSoftMotion->SoftMotionRun();
+    //     nanosleep(&ts, nullptr);
+    // }
     while (true)
     {
-        pSoftMotion->SoftMotionRun();
-        nanosleep(&ts, nullptr);
-    }
-    while (true)
-    {
-        fbMoveRelative(v_Axis[0],true,5,0.5,0.5,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
+        fbMoveAbsolute(v_Axis[0],true,0,0.5,0.1,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
+        //fbMoveRelative(v_Axis[0],true,rel,0.5,0.1,10,100,EN_Direction::enPositive,EN_BufferMode::enAborting,bDone,bBusy,bCommandAborted,bError,nErrorID);
         if(bDone)
         {
             c = c+1;

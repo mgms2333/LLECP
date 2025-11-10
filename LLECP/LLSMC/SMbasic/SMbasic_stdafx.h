@@ -18,6 +18,7 @@
 #include "AxisMovement/MC_MoveAbsolute.h"
 #include "AxisMovement/MC_MoveRelative.h"
 #include "AxisMovement/MC_MoveVelocity.h"
+#include "AxisMovement/MC_SetOverride.h"
 #include "AxisMovement/MC_SetPosition.h"
 #include "AxisMovement/MC_Stop.h"
 
