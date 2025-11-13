@@ -1756,7 +1756,7 @@ int FifteenSeg_plan(ST_PlanParams stsetParam, ST_PlanParams& stActParam, ST_Plan
         A_ajuge = pow(J_amax, 2) / S_max;// 能不能达到j_max
         V_adiff = pow(A_amax, 2) / J_amax + A_amax * J_amax / S_max;// 能不能达到a_max
 
-        if ((V_max - v0) < V_adiff) {
+        if (abs(V_max - v0) < V_adiff) {
             a_tem = (-pow(J_amax, 2) + sqrt(pow(J_amax, 4) + 4 * S_max * abs(V_max - v0) * J_amax * S_max)) / (2 * S_max);
             if ((a_tem - stsetParam.A_amax) > Zero) {
                 err = Error_in_calculating_the_acceleration_for_the_single_deceleration_segment;

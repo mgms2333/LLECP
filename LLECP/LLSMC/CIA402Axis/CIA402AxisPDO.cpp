@@ -17,7 +17,6 @@ void CIA402Axis::PDOsynchronization()
     PDO_ReadModesOfOperation(m_stMirrorPDO.ActualModesOfOperation);
 }
 
-
 // ===== 写入（RxPDO） =====
 int CIA402Axis::PDO_SetControlword(uint16_t Controlword)
 {

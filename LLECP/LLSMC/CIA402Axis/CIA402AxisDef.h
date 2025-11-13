@@ -63,9 +63,9 @@ struct ST_SMCInitMap
 // 运动方向
 enum EN_Direction
 {
-    enPositive = 0,   // 正方向
-    enNegative = 1,   // 负方向
-    enCurrent  = 2    // 保持当前方向（有些厂商支持）
+    enPositive = 1,   // 正方向
+    enNegative = -1,   // 负方向
+    //enCurrent  = 2    // 保持当前方向（有些厂商支持）
 };
 
 //运动模式

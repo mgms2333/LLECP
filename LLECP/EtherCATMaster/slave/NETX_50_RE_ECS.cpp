@@ -20,6 +20,9 @@ int NETX_50_RE_ECS::InitPDOmap(ec_slavet* ec_clave)
     }
     m_TxPDO = (ST_NETX_TxPDO*)ec_clave->inputs;
     m_RxPDO = (ST_NETX_RxPDO*)ec_clave->outputs;
+    m_RxPDO->TargetPos = m_TxPDO->ActualPos;
+    m_RxPDO->TargetModeOpration = m_TxPDO->ActModeOpration;
+    m_RxPDO->TargetCur = m_TxPDO->ActualCur;
     return 0;
 }
 

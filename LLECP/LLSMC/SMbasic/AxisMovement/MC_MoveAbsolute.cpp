@@ -17,10 +17,10 @@ void MC_MoveAbsolute::operator()(CIA402Axis* axis,bool bExecute,double dPosition
     m_pCIA402Axis                                   = axis;
     m_bExecute                                      = bExecute;
     m_MotionUint_New.PlanningMotionParam.pos            = dPosition;
-    m_MotionUint_New.PlanningMotionParam.vel            = dVelocity;
-    m_MotionUint_New.PlanningMotionParam.acc            = dAcceleration;
-    m_MotionUint_New.PlanningMotionParam.dec            = dDeceleration;
-    m_MotionUint_New.PlanningMotionParam.jerk           = dJerk;
+    m_MotionUint_New.PlanningMotionParam.vel            = abs(dVelocity);
+    m_MotionUint_New.PlanningMotionParam.acc            = abs(dAcceleration);
+    m_MotionUint_New.PlanningMotionParam.dec            = abs(dDeceleration);
+    m_MotionUint_New.PlanningMotionParam.jerk           = abs(dJerk);
     m_MotionUint_New.PlanningMotionParam.Direction      = enDirection;
     m_MotionUint_New.PlanningMotionParam.PlanningMode   = enPositionPlanningMode;
     m_MotionUint_New.BufferMode                         = enBufferMode;

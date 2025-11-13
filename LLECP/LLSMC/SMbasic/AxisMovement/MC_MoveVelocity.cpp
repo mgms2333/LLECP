@@ -24,6 +24,8 @@ void MC_MoveVelocity::operator()(CIA402Axis* axis,bool bExecute,double dVelocity
     m_MotionUint_New.PlanningMotionParam.PlanningMode   = enVelocityPlanningMode;
     m_MotionUint_New.MoveType                           = enMoveTypeNull;
     m_MotionUint_New.fbID                               = this;
+    //方向初始化
+    m_MotionUint_New.PlanningMotionParam.vel = abs(m_MotionUint_New.PlanningMotionParam.vel)*m_MotionUint_New.PlanningMotionParam.Direction;
     this->Execute();
     bInVelocity = m_bInVelocity;
     bBusy = m_bBusy;

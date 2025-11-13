@@ -23,6 +23,30 @@ CIA402Axis::~CIA402Axis(){}
 int CIA402Axis::Axis_InitMap(ST_SMCInitMap st_map)
 {
     m_st_map = st_map;
+    //pdo镜像初始化防止飞车
+    m_stMirrorPDO.Controlword = PDO_CONTROLWORD;
+    m_stMirrorPDO.StatusWord = PDO_STATUSWORD;
+    if(nullptr!=&PDO_ACTUALPOSITION)
+    {
+        m_stMirrorPDO.TargetPosition = PDO_ACTUALPOSITION;
+        m_stMirrorPDO.ActualPosition = PDO_ACTUALPOSITION;
+        PDO_TARGETPOSITION = PDO_ACTUALPOSITION;
+    }
+    if(nullptr!=&PDO_ACTUALTORQUE)
+    {
+        m_stMirrorPDO.TargetTorque = PDO_ACTUALTORQUE;
+        m_stMirrorPDO.ActualTorque = PDO_ACTUALTORQUE;
+    }
+    if(nullptr!=&PDO_ACTVELOCITY)
+    {
+        m_stMirrorPDO.TargetVelocity = PDO_ACTVELOCITY;
+        m_stMirrorPDO.ActualVelocity = PDO_ACTVELOCITY;
+    }
+    if(nullptr!=&PDO_ACTUALMODESOFOPERATION)
+    {
+        m_stMirrorPDO.TargetModesOfOperation = PDO_ACTUALMODESOFOPERATION;
+        m_stMirrorPDO.ActualModesOfOperation = PDO_ACTUALMODESOFOPERATION;
+    }
     return AEC_SUCCESSED;
 }
 int CIA402Axis::Axis_SetAxisID(uint16_t id)
